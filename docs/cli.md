@@ -10,6 +10,10 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report budget [--month AAAA-MM] [--json]` | Só categorias com orçamento: gasto, teto, %. |
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
+| `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
+| `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
+| `finance categorize [--month AAAA-MM] [--json]` | Lista lançamentos sem categoria. |
+| `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria e, com `--rule`, grava a regra em `rules.yaml`. |
 
 `--account` aceita o `id` exato ou parte do nome (`"nubank cart"`); ambiguidade é erro.
 
@@ -21,6 +25,16 @@ finance add --account nu-card --amount -3000 --desc "celular" --installments 10
 finance report month --month 2026-09
 finance report invoice --account nu-card --month 2026-10 --json
 ```
+
+## Formatos de extrato suportados
+
+| Banco | Produto | Formatos |
+|---|---|---|
+| qualquer | conta ou cartão | OFX |
+| Nubank | conta | CSV (`Data,Valor,Identificador,Descrição`) |
+| Nubank | cartão | CSV (`date,title,amount`) |
+
+Outro banco ou formato: `finance import` falha com "formato não reconhecido". Abra uma issue com um extrato anonimizado para o parser ser escrito — nunca edite o arquivo para "caber" num formato existente.
 
 ## Montar o repo privado de dados
 

@@ -17,8 +17,18 @@ uv run finance --help
 FINANCE_DATA_DIR=examples/data uv run finance report balance
 ```
 
+## Skills
+
+| Skill | Dispara quando |
+|---|---|
+| `lancar` | "gastei 50 no uber", "comprei um celular em 10x" |
+| `importar` | "baixei o extrato", "chegou a fatura" |
+| `categorizar` | pendentes sem categoria |
+| `fechar-mes` | "como foi o mês", "fecha setembro" |
+| `saldo` | "quanto tenho", "quanto vem de fatura" |
+
 ## Comandos
 
-Ver `docs/cli.md`.
+Ver `docs/cli.md`. Formatos de extrato suportados: OFX (qualquer banco) e os CSV de conta e cartão do Nubank.
 
 Design: `docs/superpowers/specs/2026-09-09-finance-v1-design.md`.
