@@ -27,8 +27,9 @@ renda: [salario]
 """
 
 BUDGET_YAML = """
-transporte/uber: 300
-casa/luz: 250
+geral:
+  transporte/uber: 300
+  casa/luz: 250
 """
 
 

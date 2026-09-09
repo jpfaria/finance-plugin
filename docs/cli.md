@@ -17,6 +17,26 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 
 `--account` aceita o `id` exato ou parte do nome (`"nubank cart"`); ambiguidade é erro.
 
+## Grupos de conta
+
+Cada conta pode declarar `group: <nome livre>` em `accounts.yaml` — "pessoal", "pj", "familia", quantos você quiser. A lista de grupos sai das próprias contas; não existe segundo arquivo pra desincronizar.
+
+`report month`, `report budget` e `report balance` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
+
+## Orçamento
+
+`budget.yaml` tem duas seções. `geral` vale pra tudo; `grupos` sobrescreve por grupo, categoria a categoria:
+
+```yaml
+geral:
+  transporte/uber: 300
+grupos:
+  pj:
+    transporte/uber: 500
+```
+
+Num relatório com `--group pj`, `transporte/uber` usa 500; qualquer categoria sem limite próprio no grupo cai no `geral`.
+
 ## Exemplos
 
 ```bash

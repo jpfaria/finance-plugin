@@ -23,6 +23,7 @@ class CategoryLine:
 class MonthSummary:
     year: int
     month: int
+    group: str | None
     income: Decimal
     expenses: Decimal
     net: Decimal
@@ -32,12 +33,22 @@ class MonthSummary:
 
 
 def month_summary(
-    conn: sqlite3.Connection, year: int, month: int, budget: dict[str, Decimal]
+    conn: sqlite3.Connection,
+    year: int,
+    month: int,
+    budget: dict[str, Decimal],
+    accounts: set[str] | None = None,
+    group: str | None = None,
 ) -> MonthSummary:
-    rows = conn.execute(
-        "select amount, category, status from entries where year_month = ? and transfer_group = ''",
-        (f"{year:04d}-{month:02d}",),
-    ).fetchall()
+    rows = [
+        row
+        for row in conn.execute(
+            "select amount, category, status, account from entries "
+            "where year_month = ? and transfer_group = ''",
+            (f"{year:04d}-{month:02d}",),
+        ).fetchall()
+        if accounts is None or row["account"] in accounts
+    ]
     income = ZERO
     spent_by_category: dict[str, Decimal] = dict.fromkeys(budget, ZERO)
     uncategorized = 0
@@ -60,7 +71,15 @@ def month_summary(
     lines.sort(key=lambda line: (-line.spent, line.category))
     expenses = sum((line.spent for line in lines), ZERO)
     return MonthSummary(
-        year, month, income, expenses, income - expenses, lines, uncategorized, pending_manual
+        year,
+        month,
+        group,
+        income,
+        expenses,
+        income - expenses,
+        lines,
+        uncategorized,
+        pending_manual,
     )
 
 

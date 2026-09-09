@@ -8,6 +8,7 @@ from pathlib import Path
 from finance.cache.connection import is_stale, open_db
 from finance.cache.rebuild import rebuild
 from finance.config.accounts import load_accounts
+from finance.config.budget import Budget
 from finance.ledger.store import LedgerStore
 from finance.model.entry import Entry
 
@@ -26,7 +27,7 @@ def test_rebuild_loads_entries_accounts_budget(data_root: Path, cache_root: Path
     _seed(data_root)
     accounts = load_accounts(data_root / "accounts.yaml")
     db = cache_root / "finance.db"
-    n = rebuild(data_root, db, accounts, {"casa/luz": Decimal("250.00")})
+    n = rebuild(data_root, db, accounts, Budget(general={"casa/luz": Decimal("250.00")}))
     assert n == 2
     conn = sqlite3.connect(db)
     assert conn.execute("select count(*) from entries").fetchone()[0] == 2
@@ -42,7 +43,7 @@ def test_open_db_rebuilds_when_stale(data_root: Path, cache_root: Path) -> None:
     accounts = load_accounts(data_root / "accounts.yaml")
     db = cache_root / "finance.db"
     assert is_stale(data_root, db)
-    conn = open_db(data_root, cache_root, accounts, {})
+    conn = open_db(data_root, cache_root, accounts, Budget())
     assert conn.execute("select count(*) from entries").fetchone()[0] == 2
     conn.close()
     assert not is_stale(data_root, db)
@@ -50,5 +51,5 @@ def test_open_db_rebuilds_when_stale(data_root: Path, cache_root: Path) -> None:
     future = time.time() + 5
     os.utime(data_root / "ledger" / "2026-09.csv", (future, future))
     assert is_stale(data_root, db)
-    conn = open_db(data_root, cache_root, accounts, {})
+    conn = open_db(data_root, cache_root, accounts, Budget())
     assert conn.execute("select count(*) from entries").fetchone()[0] == 3

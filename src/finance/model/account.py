@@ -17,6 +17,7 @@ class Account:
     type: AccountType
     closing_day: int | None = None
     due_day: int | None = None
+    group: str = ""
 
     @property
     def is_credit(self) -> bool:

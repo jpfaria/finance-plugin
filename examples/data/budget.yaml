@@ -1,1 +1,4 @@
-{}
+# Limite de gasto por mês, por categoria.
+# `geral` vale pra tudo; `grupos` sobrescreve por grupo de conta (o `group:` em accounts.yaml).
+geral: {}
+grupos: {}

@@ -1,10 +1,10 @@
 """Open the cache, rebuilding it whenever data/ is newer."""
 
 import sqlite3
-from decimal import Decimal
 from pathlib import Path
 
 from finance.cache.rebuild import rebuild
+from finance.config.budget import Budget
 from finance.ledger.paths import ledger_files
 from finance.model.account import Account
 
@@ -21,7 +21,7 @@ def is_stale(data_root: Path, db_path: Path) -> bool:
 
 
 def open_db(
-    data_root: Path, cache_root: Path, accounts: dict[str, Account], budget: dict[str, Decimal]
+    data_root: Path, cache_root: Path, accounts: dict[str, Account], budget: Budget
 ) -> sqlite3.Connection:
     db_path = cache_root / DB_NAME
     if is_stale(data_root, db_path):
