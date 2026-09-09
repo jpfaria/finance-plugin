@@ -1,0 +1,8 @@
+casa: [aluguel, condominio, luz, agua, internet, mercado, manutencao]
+transporte: [uber, combustivel, estacionamento, transporte-publico]
+alimentacao: [restaurante, delivery, padaria]
+saude: [plano, farmacia, consulta]
+lazer: [streaming, viagem, bar, cinema]
+pessoal: [roupas, eletronicos, presentes, educacao]
+financeiro: [tarifas, juros, seguros]
+renda: [salario, freelance, rendimentos, reembolso]

@@ -178,7 +178,9 @@ def _version_callback(value: bool) -> None:
 def main(
     version: Annotated[
         bool,
-        typer.Option("--version", callback=_version_callback, is_eager=True, help="Mostra a versão."),
+        typer.Option(
+            "--version", callback=_version_callback, is_eager=True, help="Mostra a versão."
+        ),
     ] = False,
 ) -> None:
     """finance — controle financeiro pessoal."""
@@ -510,20 +512,36 @@ from finance.model.entry import Entry, Status
 
 
 def test_account_is_credit() -> None:
-    card = Account(id="nu-card", name="Nubank cartão", bank="nubank", type=AccountType.CREDIT, closing_day=3, due_day=10)
+    card = Account(
+        id="nu-card",
+        name="Nubank cartão",
+        bank="nubank",
+        type=AccountType.CREDIT,
+        closing_day=3,
+        due_day=10,
+    )
     conta = Account(id="nu", name="Nubank conta", bank="nubank", type=AccountType.CHECKING)
     assert card.is_credit
     assert not conta.is_credit
 
 
 def test_entry_defaults_and_transfer_flag() -> None:
-    e = Entry(id="01H", date=date(2026, 9, 1), account="nu", amount=Decimal("-50.00"), description="uber")
+    e = Entry(
+        id="01H", date=date(2026, 9, 1), account="nu", amount=Decimal("-50.00"), description="uber"
+    )
     assert e.status is Status.MANUAL
     assert e.source == "manual"
     assert e.category == ""
     assert e.tags == ()
     assert not e.is_transfer
-    t = Entry(id="01J", date=date(2026, 9, 1), account="nu", amount=Decimal("-500.00"), description="fatura", transfer_group="G1")
+    t = Entry(
+        id="01J",
+        date=date(2026, 9, 1),
+        account="nu",
+        amount=Decimal("-500.00"),
+        description="fatura",
+        transfer_group="G1",
+    )
     assert t.is_transfer
 ```
 
@@ -922,7 +940,13 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from finance.ledger.csv_io import COLUMNS, entry_to_row, read_month_file, row_to_entry, write_month_file
+from finance.ledger.csv_io import (
+    COLUMNS,
+    entry_to_row,
+    read_month_file,
+    row_to_entry,
+    write_month_file,
+)
 from finance.ledger.ids import new_id
 from finance.model.entry import Entry, Status
 
@@ -1223,7 +1247,14 @@ from finance.model.account import Account, AccountType
 from finance.model.entry import Status
 from finance.model.errors import FinanceError
 
-CARD = Account(id="nu-card", name="Nubank cartão", bank="nubank", type=AccountType.CREDIT, closing_day=3, due_day=10)
+CARD = Account(
+    id="nu-card",
+    name="Nubank cartão",
+    bank="nubank",
+    type=AccountType.CREDIT,
+    closing_day=3,
+    due_day=10,
+)
 CHECKING = Account(id="nu", name="Nubank conta", bank="nubank", type=AccountType.CHECKING)
 CATS = frozenset({"casa/luz", "transporte/uber"})
 
@@ -1249,7 +1280,9 @@ def test_split_installments_rejects_zero() -> None:
 
 
 def test_single_entry() -> None:
-    req = AddRequest(CHECKING, Decimal("-50.00"), date(2026, 9, 5), "uber", "transporte/uber", ("viagem",), 1)
+    req = AddRequest(
+        CHECKING, Decimal("-50.00"), date(2026, 9, 5), "uber", "transporte/uber", ("viagem",), 1
+    )
     [e] = build_manual_entries(req, CATS, _id_iter())
     assert e.id == "ID0"
     assert e.account == "nu"
@@ -1397,8 +1430,21 @@ def env(monkeypatch: pytest.MonkeyPatch, data_root: Path, cache_root: Path) -> P
 def test_add_single(env: Path) -> None:
     result = CliRunner().invoke(
         app,
-        ["add", "--account", "nu", "--amount", "-50", "--desc", "uber", "--date", "2026-09-05",
-         "--category", "transporte/uber", "--tags", "viagem,trabalho"],
+        [
+            "add",
+            "--account",
+            "nu",
+            "--amount",
+            "-50",
+            "--desc",
+            "uber",
+            "--date",
+            "2026-09-05",
+            "--category",
+            "transporte/uber",
+            "--tags",
+            "viagem,trabalho",
+        ],
     )
     assert result.exit_code == 0, result.output
     assert "1 lançamento(s) gravado(s)" in result.output
@@ -1410,8 +1456,19 @@ def test_add_single(env: Path) -> None:
 def test_add_installments_by_account_name(env: Path) -> None:
     result = CliRunner().invoke(
         app,
-        ["add", "--account", "nubank cart", "--amount", "-1000", "--desc", "celular",
-         "--date", "2026-09-05", "--installments", "10"],
+        [
+            "add",
+            "--account",
+            "nubank cart",
+            "--amount",
+            "-1000",
+            "--desc",
+            "celular",
+            "--date",
+            "2026-09-05",
+            "--installments",
+            "10",
+        ],
     )
     assert result.exit_code == 0, result.output
     assert "10 lançamento(s) gravado(s)" in result.output
@@ -1426,7 +1483,9 @@ def test_add_unknown_account_fails_cleanly(env: Path) -> None:
 
 
 def test_add_ambiguous_account_fails(env: Path) -> None:
-    result = CliRunner().invoke(app, ["add", "--account", "nubank", "--amount", "-1", "--desc", "x"])
+    result = CliRunner().invoke(
+        app, ["add", "--account", "nubank", "--amount", "-1", "--desc", "x"]
+    )
     assert result.exit_code == 1
     assert "ambígua" in result.output
 ```
@@ -1516,7 +1575,9 @@ def add(
     account: Annotated[str, typer.Option("--account", help="id ou parte do nome da conta")],
     amount: Annotated[str, typer.Option("--amount", help="negativo = saída, positivo = entrada")],
     desc: Annotated[str, typer.Option("--desc")],
-    date_text: Annotated[str | None, typer.Option("--date", help="AAAA-MM-DD, default hoje")] = None,
+    date_text: Annotated[
+        str | None, typer.Option("--date", help="AAAA-MM-DD, default hoje")
+    ] = None,
     category: Annotated[str, typer.Option("--category")] = "",
     installments: Annotated[int, typer.Option("--installments", min=1)] = 1,
     tags: Annotated[str, typer.Option("--tags", help="separadas por vírgula")] = "",
@@ -1591,8 +1652,20 @@ from finance.model.entry import Entry
 def _seed(data_root: Path) -> None:
     LedgerStore(data_root).append(
         [
-            Entry(id="A", date=date(2026, 9, 1), account="nu", amount=Decimal("-10.00"), description="a"),
-            Entry(id="B", date=date(2026, 10, 1), account="nu", amount=Decimal("20.00"), description="b"),
+            Entry(
+                id="A",
+                date=date(2026, 9, 1),
+                account="nu",
+                amount=Decimal("-10.00"),
+                description="a",
+            ),
+            Entry(
+                id="B",
+                date=date(2026, 10, 1),
+                account="nu",
+                amount=Decimal("20.00"),
+                description="b",
+            ),
         ]
     )
 
@@ -1607,7 +1680,10 @@ def test_rebuild_loads_entries_accounts_budget(data_root: Path, cache_root: Path
     assert conn.execute("select count(*) from entries").fetchone()[0] == 2
     assert conn.execute("select year_month from entries where id='B'").fetchone()[0] == "2026-10"
     assert conn.execute("select count(*) from accounts").fetchone()[0] == 3
-    assert conn.execute("select amount from budget where category='casa/luz'").fetchone()[0] == "250.00"
+    assert (
+        conn.execute("select amount from budget where category='casa/luz'").fetchone()[0]
+        == "250.00"
+    )
 
 
 def test_open_db_rebuilds_when_stale(data_root: Path, cache_root: Path) -> None:
@@ -1621,7 +1697,15 @@ def test_open_db_rebuilds_when_stale(data_root: Path, cache_root: Path) -> None:
     assert not is_stale(data_root, db)
     time.sleep(0.01)
     LedgerStore(data_root).append(
-        [Entry(id="C", date=date(2026, 9, 3), account="nu", amount=Decimal("-1.00"), description="c")]
+        [
+            Entry(
+                id="C",
+                date=date(2026, 9, 3),
+                account="nu",
+                amount=Decimal("-1.00"),
+                description="c",
+            )
+        ]
     )
     future = time.time() + 5
     os.utime(data_root / "ledger" / "2026-09.csv", (future, future))
@@ -1705,14 +1789,14 @@ def rebuild(
         conn.executescript(SCHEMA)
         conn.executemany(
             _ENTRY_SQL,
-            [
-                (*(entry_to_row(e)[c] for c in COLUMNS), e.date.strftime("%Y-%m"))
-                for e in entries
-            ],
+            [(*(entry_to_row(e)[c] for c in COLUMNS), e.date.strftime("%Y-%m")) for e in entries],
         )
         conn.executemany(
             "insert into accounts values (?, ?, ?, ?, ?, ?)",
-            [(a.id, a.name, a.bank, a.type.value, a.closing_day, a.due_day) for a in accounts.values()],
+            [
+                (a.id, a.name, a.bank, a.type.value, a.closing_day, a.due_day)
+                for a in accounts.values()
+            ],
         )
         conn.executemany(
             "insert into budget values (?, ?)",
@@ -1783,7 +1867,9 @@ from typer.testing import CliRunner
 from finance.cli import app
 
 
-def test_rebuild_creates_db(monkeypatch: pytest.MonkeyPatch, data_root: Path, cache_root: Path) -> None:
+def test_rebuild_creates_db(
+    monkeypatch: pytest.MonkeyPatch, data_root: Path, cache_root: Path
+) -> None:
     monkeypatch.setenv("FINANCE_DATA_DIR", str(data_root))
     monkeypatch.setenv("FINANCE_CACHE_DIR", str(cache_root))
     result = CliRunner().invoke(app, ["rebuild"])
@@ -1935,7 +2021,14 @@ from finance.reports.balance import account_balances
 
 
 def _e(id_: str, d: date, account: str, amount: str, transfer: str = "") -> Entry:
-    return Entry(id=id_, date=d, account=account, amount=Decimal(amount), description=id_, transfer_group=transfer)
+    return Entry(
+        id=id_,
+        date=d,
+        account=account,
+        amount=Decimal(amount),
+        description=id_,
+        transfer_group=transfer,
+    )
 
 
 def test_balances_and_open_invoice(data_root: Path, cache_root: Path) -> None:
@@ -1943,8 +2036,8 @@ def test_balances_and_open_invoice(data_root: Path, cache_root: Path) -> None:
         [
             _e("sal", date(2026, 9, 1), "nu", "3000.00"),
             _e("mkt", date(2026, 9, 2), "nu", "-200.00"),
-            _e("c1", date(2026, 8, 20), "nu-card", "-100.00"),   # fatura 2026-09 (04/08..03/09)
-            _e("c2", date(2026, 9, 5), "nu-card", "-50.00"),     # fatura 2026-10
+            _e("c1", date(2026, 8, 20), "nu-card", "-100.00"),  # fatura 2026-09 (04/08..03/09)
+            _e("c2", date(2026, 9, 5), "nu-card", "-50.00"),  # fatura 2026-10
             _e("pay-out", date(2026, 9, 10), "nu", "-100.00", "T1"),
             _e("pay-in", date(2026, 9, 10), "nu-card", "100.00", "T1"),
         ]
@@ -1979,17 +2072,24 @@ from finance.reports.invoice import invoice
 
 
 def _e(id_: str, d: date, amount: str, transfer: str = "") -> Entry:
-    return Entry(id=id_, date=d, account="nu-card", amount=Decimal(amount), description=id_, transfer_group=transfer)
+    return Entry(
+        id=id_,
+        date=d,
+        account="nu-card",
+        amount=Decimal(amount),
+        description=id_,
+        transfer_group=transfer,
+    )
 
 
 def test_invoice_totals_and_window(data_root: Path, cache_root: Path) -> None:
     LedgerStore(data_root).append(
         [
-            _e("before", date(2026, 8, 3), "-999.00"),   # fatura 2026-08
+            _e("before", date(2026, 8, 3), "-999.00"),  # fatura 2026-08
             _e("a", date(2026, 8, 4), "-100.00"),
             _e("b", date(2026, 9, 3), "-20.50"),
             _e("pay", date(2026, 8, 15), "60.00", "T1"),
-            _e("after", date(2026, 9, 4), "-1.00"),     # fatura 2026-10
+            _e("after", date(2026, 9, 4), "-1.00"),  # fatura 2026-10
         ]
     )
     accounts = load_accounts(data_root / "accounts.yaml")
@@ -2060,7 +2160,9 @@ def account_balances(
             open_invoice = -in_period
             open_month = f"{year:04d}-{month:02d}"
         result.append(
-            AccountBalance(account.id, account.name, account.type.value, balance, open_invoice, open_month)
+            AccountBalance(
+                account.id, account.name, account.type.value, balance, open_invoice, open_month
+            )
         )
     return result
 ```
@@ -2126,8 +2228,18 @@ def invoice(conn: sqlite3.Connection, account: Account, year: int, month: int) -
         for r in rows
     ]
     zero = Decimal("0.00")
-    purchases = -sum((Decimal(r["amount"]) for r in rows if Decimal(r["amount"]) < 0 and not r["transfer_group"]), zero)
-    payments = sum((Decimal(r["amount"]) for r in rows if Decimal(r["amount"]) > 0 and r["transfer_group"]), zero)
+    purchases = -sum(
+        (
+            Decimal(r["amount"])
+            for r in rows
+            if Decimal(r["amount"]) < 0 and not r["transfer_group"]
+        ),
+        zero,
+    )
+    payments = sum(
+        (Decimal(r["amount"]) for r in rows if Decimal(r["amount"]) > 0 and r["transfer_group"]),
+        zero,
+    )
     total_due = -sum((Decimal(r["amount"]) for r in rows), zero)
     return Invoice(
         account_id=account.id,
@@ -2175,8 +2287,24 @@ from finance.model.entry import Entry, Status
 from finance.reports.month import month_summary
 
 
-def _e(id_: str, d: date, amount: str, category: str = "", transfer: str = "", status: Status = Status.CONFIRMED) -> Entry:
-    return Entry(id=id_, date=d, account="nu", amount=Decimal(amount), description=id_, category=category, transfer_group=transfer, status=status)
+def _e(
+    id_: str,
+    d: date,
+    amount: str,
+    category: str = "",
+    transfer: str = "",
+    status: Status = Status.CONFIRMED,
+) -> Entry:
+    return Entry(
+        id=id_,
+        date=d,
+        account="nu",
+        amount=Decimal(amount),
+        description=id_,
+        category=category,
+        transfer_group=transfer,
+        status=status,
+    )
 
 
 def test_month_summary(data_root: Path, cache_root: Path) -> None:
@@ -2192,7 +2320,11 @@ def test_month_summary(data_root: Path, cache_root: Path) -> None:
         ]
     )
     accounts = load_accounts(data_root / "accounts.yaml")
-    budget = {"transporte/uber": Decimal("300.00"), "casa/luz": Decimal("250.00"), "casa/aluguel": Decimal("1500.00")}
+    budget = {
+        "transporte/uber": Decimal("300.00"),
+        "casa/luz": Decimal("250.00"),
+        "casa/aluguel": Decimal("1500.00"),
+    }
     conn = open_db(data_root, cache_root, accounts, budget)
     s = month_summary(conn, 2026, 9, budget)
     assert s.income == Decimal("3000.00")
@@ -2275,7 +2407,9 @@ def month_summary(
     ]
     lines.sort(key=lambda line: (-line.spent, line.category))
     expenses = sum((line.spent for line in lines), _ZERO)
-    return MonthSummary(year, month, income, expenses, income - expenses, lines, uncategorized, pending_manual)
+    return MonthSummary(
+        year, month, income, expenses, income - expenses, lines, uncategorized, pending_manual
+    )
 
 
 def _pct(spent: Decimal, cap: Decimal | None) -> Decimal | None:
@@ -2358,9 +2492,47 @@ def env(monkeypatch: pytest.MonkeyPatch, data_root: Path, cache_root: Path) -> P
     monkeypatch.setenv("FINANCE_CACHE_DIR", str(cache_root))
     runner = CliRunner()
     for args in (
-        ["add", "--account", "nu", "--amount", "3000", "--desc", "salario", "--date", "2026-09-01", "--category", "renda/salario"],
-        ["add", "--account", "nu", "--amount", "-40", "--desc", "uber", "--date", "2026-09-02", "--category", "transporte/uber"],
-        ["add", "--account", "nu-card", "--amount", "-300", "--desc", "tv", "--date", "2026-08-20", "--installments", "3", "--category", "casa/luz"],
+        [
+            "add",
+            "--account",
+            "nu",
+            "--amount",
+            "3000",
+            "--desc",
+            "salario",
+            "--date",
+            "2026-09-01",
+            "--category",
+            "renda/salario",
+        ],
+        [
+            "add",
+            "--account",
+            "nu",
+            "--amount",
+            "-40",
+            "--desc",
+            "uber",
+            "--date",
+            "2026-09-02",
+            "--category",
+            "transporte/uber",
+        ],
+        [
+            "add",
+            "--account",
+            "nu-card",
+            "--amount",
+            "-300",
+            "--desc",
+            "tv",
+            "--date",
+            "2026-08-20",
+            "--installments",
+            "3",
+            "--category",
+            "casa/luz",
+        ],
     ):
         result = runner.invoke(app, args)
         assert result.exit_code == 0, result.output
@@ -2393,7 +2565,9 @@ def test_report_balance_json(env: Path) -> None:
 
 
 def test_report_invoice_json(env: Path) -> None:
-    result = CliRunner().invoke(app, ["report", "invoice", "--account", "nu-card", "--month", "2026-09", "--json"])
+    result = CliRunner().invoke(
+        app, ["report", "invoice", "--account", "nu-card", "--month", "2026-09", "--json"]
+    )
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
     assert data["total_due"] == "100.00"
@@ -2522,7 +2696,15 @@ def month(month: MonthOpt = None, as_json: JsonOpt = False) -> None:
         emit_table(
             f"Resumo {summary.year:04d}-{summary.month:02d}",
             ["receitas", "despesas", "saldo", "sem categoria", "manuais pendentes"],
-            [[summary.income, summary.expenses, summary.net, summary.uncategorized, summary.pending_manual]],
+            [
+                [
+                    summary.income,
+                    summary.expenses,
+                    summary.net,
+                    summary.uncategorized,
+                    summary.pending_manual,
+                ]
+            ],
         )
         emit_table(
             "Por categoria",
@@ -2593,9 +2775,16 @@ def invoice(
         emit_table(
             f"Fatura {acct.name} {year:04d}-{m:02d} ({inv.start} a {inv.end}, vence {inv.due})",
             ["data", "descrição", "valor", "categoria", "parcela", "status"],
-            [[l.date, l.description, l.amount, l.category, l.installment, l.status] for l in inv.lines],
+            [
+                [l.date, l.description, l.amount, l.category, l.installment, l.status]
+                for l in inv.lines
+            ],
         )
-        emit_table("Totais", ["compras", "pagamentos", "a pagar"], [[inv.purchases, inv.payments, inv.total_due]])
+        emit_table(
+            "Totais",
+            ["compras", "pagamentos", "a pagar"],
+            [[inv.purchases, inv.payments, inv.total_due]],
+        )
 
     run(_go)
 ```

@@ -17,4 +17,8 @@ uv run finance --help
 FINANCE_DATA_DIR=examples/data uv run finance report balance
 ```
 
+## Comandos
+
+Ver `docs/cli.md`.
+
 Design: `docs/superpowers/specs/2026-09-09-finance-v1-design.md`.
