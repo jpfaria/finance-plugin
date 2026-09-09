@@ -34,12 +34,19 @@ def _parse(item: Any, path: Path) -> Account:
             type=AccountType(str(item["type"])),
             closing_day=_optional_day(item.get("closing_day")),
             due_day=_optional_day(item.get("due_day")),
+            group=str(item.get("group", "")).strip(),
         )
     except (KeyError, ValueError) as exc:
         raise FinanceError(f"{path}: conta inválida: {item!r} ({exc})") from exc
     if account.is_credit and (account.closing_day is None or account.due_day is None):
         raise FinanceError(f"{path}: cartão {account.id!r} precisa de closing_day e due_day")
     return account
+
+
+def accounts_in_group(accounts: dict[str, Account], group: str | None) -> dict[str, Account]:
+    if group is None:
+        return accounts
+    return {i: a for i, a in accounts.items() if a.group == group}
 
 
 def _optional_day(value: Any) -> int | None:

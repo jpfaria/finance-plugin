@@ -4,6 +4,7 @@ from pathlib import Path
 
 from finance.cache.connection import open_db
 from finance.config.accounts import load_accounts
+from finance.config.budget import Budget
 from finance.ledger.store import LedgerStore
 from finance.model.entry import Entry
 from finance.reports.balance import account_balances
@@ -32,7 +33,7 @@ def test_balances_and_open_invoice(data_root: Path, cache_root: Path) -> None:
         ]
     )
     accounts = load_accounts(data_root / "accounts.yaml")
-    conn = open_db(data_root, cache_root, accounts, {})
+    conn = open_db(data_root, cache_root, accounts, Budget())
     result = {b.account_id: b for b in account_balances(conn, accounts, today=date(2026, 9, 20))}
     assert result["nu"].balance == Decimal("2700.00")
     assert result["nu"].open_invoice is None

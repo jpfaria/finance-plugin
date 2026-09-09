@@ -47,11 +47,14 @@ def test_load_categories(data_root: Path) -> None:
 def test_load_budget(data_root: Path) -> None:
     cats = load_categories(data_root / "categories.yaml")
     budget = load_budget(data_root / "budget.yaml", cats)
-    assert budget == {"transporte/uber": Decimal("300.00"), "casa/luz": Decimal("250.00")}
+    assert budget.limits(None) == {
+        "transporte/uber": Decimal("300.00"),
+        "casa/luz": Decimal("250.00"),
+    }
 
 
 def test_load_budget_rejects_unknown_category(tmp_path: Path) -> None:
     p = tmp_path / "b.yaml"
-    p.write_text("lazer/cinema: 100\n", encoding="utf-8")
+    p.write_text("geral:\n  lazer/cinema: 100\n", encoding="utf-8")
     with pytest.raises(FinanceError, match="categoria desconhecida"):
         load_budget(p, frozenset({"casa/luz"}))

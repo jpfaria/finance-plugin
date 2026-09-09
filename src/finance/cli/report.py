@@ -6,7 +6,7 @@ from typing import Annotated
 import typer
 
 from finance.cache.connection import open_db
-from finance.cli.context import Context, load_context, resolve_account, run
+from finance.cli.context import Context, load_context, resolve_account, resolve_group, run
 from finance.model.dates import parse_month
 from finance.render.output import emit_json, emit_table
 from finance.reports.balance import account_balances
@@ -17,8 +17,15 @@ report_app = typer.Typer(no_args_is_help=True, help="Relatórios.")
 
 MonthOpt = Annotated[str | None, typer.Option("--month", help="AAAA-MM, default mês atual")]
 JsonOpt = Annotated[bool, typer.Option("--json", help="Saída em JSON")]
+GroupOpt = Annotated[
+    str | None, typer.Option("--group", help="grupo de contas; sem a flag, agrega tudo")
+]
 
 CATEGORY_COLUMNS = ["categoria", "gasto", "orçamento", "%"]
+
+
+def _scope(group: str | None) -> str:
+    return f" — {group}" if group else ""
 
 
 def _month(text: str | None) -> tuple[int, int]:
@@ -28,23 +35,31 @@ def _month(text: str | None) -> tuple[int, int]:
     return parse_month(text)
 
 
-def _summary(ctx: Context, month: str | None) -> MonthSummary:
+def _summary(ctx: Context, month: str | None, group: str | None) -> MonthSummary:
     year, m = _month(month)
+    selected = resolve_group(ctx, group)
     conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
-    return month_summary(conn, year, m, ctx.budget)
+    return month_summary(
+        conn,
+        year,
+        m,
+        ctx.budget.limits(group),
+        accounts=None if group is None else set(selected),
+        group=group,
+    )
 
 
 @report_app.command("month")
-def month(month: MonthOpt = None, as_json: JsonOpt = False) -> None:
+def month(month: MonthOpt = None, group: GroupOpt = None, as_json: JsonOpt = False) -> None:
     """Receitas, despesas por categoria vs orçamento e saldo do mês."""
 
     def _go() -> None:
-        summary = _summary(load_context(), month)
+        summary = _summary(load_context(), month, group)
         if as_json:
             emit_json(summary)
             return
         emit_table(
-            f"Resumo {summary.year:04d}-{summary.month:02d}",
+            f"Resumo {summary.year:04d}-{summary.month:02d}{_scope(summary.group)}",
             ["receitas", "despesas", "saldo", "sem categoria", "manuais pendentes"],
             [
                 [
@@ -66,17 +81,17 @@ def month(month: MonthOpt = None, as_json: JsonOpt = False) -> None:
 
 
 @report_app.command("budget")
-def budget(month: MonthOpt = None, as_json: JsonOpt = False) -> None:
+def budget(month: MonthOpt = None, group: GroupOpt = None, as_json: JsonOpt = False) -> None:
     """Categoria, orçamento e realizado."""
 
     def _go() -> None:
-        summary = _summary(load_context(), month)
+        summary = _summary(load_context(), month, group)
         lines = [line for line in summary.lines if line.budget is not None]
         if as_json:
             emit_json(lines)
             return
         emit_table(
-            f"Orçamento {summary.year:04d}-{summary.month:02d}",
+            f"Orçamento {summary.year:04d}-{summary.month:02d}{_scope(summary.group)}",
             CATEGORY_COLUMNS,
             [[line.category, line.spent, line.budget, line.pct] for line in lines],
         )
@@ -85,18 +100,19 @@ def budget(month: MonthOpt = None, as_json: JsonOpt = False) -> None:
 
 
 @report_app.command("balance")
-def balance(as_json: JsonOpt = False) -> None:
+def balance(group: GroupOpt = None, as_json: JsonOpt = False) -> None:
     """Saldo por conta e fatura aberta por cartão."""
 
     def _go() -> None:
         ctx = load_context()
+        selected = resolve_group(ctx, group)
         conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
-        rows = account_balances(conn, ctx.accounts, date.today())
+        rows = account_balances(conn, selected, date.today())
         if as_json:
             emit_json(rows)
             return
         emit_table(
-            "Saldos",
+            f"Saldos{_scope(group)}",
             ["conta", "tipo", "saldo", "fatura aberta", "mês"],
             [[r.name, r.type, r.balance, r.open_invoice, r.open_invoice_month] for r in rows],
         )

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from finance.cache.connection import open_db
 from finance.config.accounts import load_accounts
+from finance.config.budget import Budget
 from finance.ledger.store import LedgerStore
 from finance.model.entry import Entry, Status
 from finance.reports.month import month_summary
@@ -47,7 +48,7 @@ def test_month_summary(data_root: Path, cache_root: Path) -> None:
         "casa/luz": Decimal("250.00"),
         "casa/aluguel": Decimal("1500.00"),
     }
-    conn = open_db(data_root, cache_root, accounts, budget)
+    conn = open_db(data_root, cache_root, accounts, Budget(general=budget))
     s = month_summary(conn, 2026, 9, budget)
     assert s.income == Decimal("3000.00")
     assert s.expenses == Decimal("375.00")

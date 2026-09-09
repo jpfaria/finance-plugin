@@ -3,13 +3,12 @@
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
-from decimal import Decimal
 from pathlib import Path
 
 import typer
 
-from finance.config.accounts import load_accounts
-from finance.config.budget import load_budget
+from finance.config.accounts import accounts_in_group, load_accounts
+from finance.config.budget import Budget, load_budget
 from finance.config.categories import load_categories
 from finance.model.account import Account
 from finance.model.errors import FinanceError
@@ -26,7 +25,7 @@ class Context:
     cache_root: Path
     accounts: dict[str, Account]
     categories: frozenset[str]
-    budget: dict[str, Decimal]
+    budget: Budget
 
 
 def resolve_dirs() -> tuple[Path, Path]:
@@ -58,6 +57,17 @@ def resolve_account(ctx: Context, text: str) -> Account:
         raise FinanceError(f"conta desconhecida: {text!r}")
     names = ", ".join(a.id for a in matches)
     raise FinanceError(f"conta ambígua: {text!r} casa com {names}")
+
+
+def resolve_group(ctx: Context, group: str | None) -> dict[str, Account]:
+    """Accounts in `group`; every account when `group` is None. Unknown group is an error."""
+    if group is None:
+        return ctx.accounts
+    selected = accounts_in_group(ctx.accounts, group)
+    if not selected:
+        known = ", ".join(sorted({a.group for a in ctx.accounts.values() if a.group})) or "nenhum"
+        raise FinanceError(f"grupo desconhecido: {group!r}. Grupos declarados: {known}")
+    return selected
 
 
 def run(fn: Callable[[], None]) -> None:
