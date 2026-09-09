@@ -5,6 +5,7 @@ from typing import Annotated
 import typer
 
 from finance import __version__
+from finance.cli.add import add
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -25,3 +26,6 @@ def main(
     ] = False,
 ) -> None:
     """finance — controle financeiro pessoal."""
+
+
+app.command("add")(add)
