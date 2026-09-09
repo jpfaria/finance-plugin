@@ -8,6 +8,7 @@ dependencies = [
   "pyyaml>=6",
   "python-ulid>=2",
   "rich>=13",
+  "ofxparse>=0.21",
 ]
 
 [project.scripts]
@@ -35,5 +36,13 @@ strict = true
 python_version = "3.12"
 files = ["src", "tests"]
 
+[[tool.mypy.overrides]]
+# reason: ofxparse ships no type stubs; every value crossing this boundary is
+# converted to Decimal/date/str inside finance.imports.ofx, so nothing untyped leaks.
+module = ["ofxparse.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# reason: ofxparse calls bs4 findAll (deprecated upstream); not ours to fix, keep the run clean.
+filterwarnings = ["ignore::DeprecationWarning:ofxparse"]

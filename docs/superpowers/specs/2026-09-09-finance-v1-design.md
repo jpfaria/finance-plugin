@@ -140,5 +140,12 @@ Skill não calcula nada: toda regra de negócio está no CLI e nos testes dele.
 - `finance-plugin/.claude/settings.json` habilita `claude-plugin@xgodev` (disciplina de dev). `finance/.claude/settings.json` habilita `finance-plugin@finance`.
 - `CLAUDE.md` curto em cada repo: idioma, layout, "regra de negócio só no CLI", "nada pessoal no plugin".
 
-## Fora do v1
-Investimentos/patrimônio, multi-moeda, app/UI, MCP server, import automático (API dos bancos).
+## Fora do v1 — backlog do v2
+
+Registrado durante o desenvolvimento, sem issue aberta:
+
+- **Relatórios bonitos com previsão.** Saída visual (HTML/artifact ou terminal rico) além da tabela atual, com projeção de fluxo de caixa: parcelas futuras já lançadas, faturas a vencer, renda recorrente. Hoje `report` só olha o passado.
+- **Renda variável como cidadã de primeira classe.** Salário, aluguel recebido, freelance/PJ, venda de bens e reembolso já existem como categorias em `renda:`; falta relatório que separe renda fixa de variável.
+- **Conta PJ.** O usuário recebe trabalhos por fora numa conta PJ. Ela entra como mais uma conta em `accounts.yaml` (`type: checking`); falta decidir se relatórios devem separar PF de PJ (campo novo em `Account`, ex. `scope: pf|pj`).
+- Investimentos/patrimônio, multi-moeda, app/UI, MCP server, import automático (API dos bancos).
+- Formatos de extrato do Bradesco (CSV/PDF): faltam amostras anonimizadas para escrever o parser.
