@@ -1,0 +1,11 @@
+{
+  "name": "finance",
+  "owner": { "name": "João Paulo", "url": "https://github.com/jpfaria/finance-plugin" },
+  "plugins": [
+    {
+      "name": "finance-plugin",
+      "source": "./",
+      "description": "Controle financeiro pessoal via Claude Code: skills + CLI Python sobre um ledger CSV versionado."
+    }
+  ]
+}
