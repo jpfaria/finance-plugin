@@ -1,0 +1,22 @@
+# Exemplo fictício. Copie esta pasta para `data/` no seu repo privado e edite.
+accounts:
+  - id: nu
+    name: Nubank conta
+    bank: nubank
+    type: checking
+  - id: nu-card
+    name: Nubank cartão
+    bank: nubank
+    type: credit
+    closing_day: 1
+    due_day: 8
+  - id: bra
+    name: Bradesco conta
+    bank: bradesco
+    type: checking
+  - id: bra-card
+    name: Bradesco cartão
+    bank: bradesco
+    type: credit
+    closing_day: 1
+    due_day: 10
