@@ -7,6 +7,7 @@ import typer
 from finance import __version__
 from finance.cli.add import add
 from finance.cli.rebuild import rebuild
+from finance.cli.report import report_app
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -31,3 +32,4 @@ def main(
 
 app.command("add")(add)
 app.command("rebuild")(rebuild)
+app.add_typer(report_app, name="report")
