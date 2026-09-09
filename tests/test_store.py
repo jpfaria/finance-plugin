@@ -28,3 +28,25 @@ def test_append_rejects_duplicate_id(data_root: Path) -> None:
     store.append([_e("A", date(2026, 9, 1))])
     with pytest.raises(FinanceError, match="id duplicado"):
         store.append([_e("A", date(2026, 9, 3))])
+
+
+def test_replace_updates_and_removes(data_root: Path) -> None:
+    store = LedgerStore(data_root)
+    store.append([_e("A", date(2026, 9, 1)), _e("B", date(2026, 9, 2)), _e("C", date(2026, 10, 1))])
+    updated = Entry(
+        id="A",
+        date=date(2026, 9, 1),
+        account="nu",
+        amount=Decimal("-10.00"),
+        description="x",
+        category="casa/luz",
+    )
+    store.replace([updated], removed_ids={"B"})
+    assert [(e.id, e.category) for e in store.load_month(2026, 9)] == [("A", "casa/luz")]
+    assert [e.id for e in store.load_month(2026, 10)] == ["C"]
+
+
+def test_replace_unknown_id_fails(data_root: Path) -> None:
+    store = LedgerStore(data_root)
+    with pytest.raises(FinanceError, match="não encontrado"):
+        store.replace([_e("Z", date(2026, 9, 1))], removed_ids=set())

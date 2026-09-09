@@ -27,6 +27,18 @@ class LedgerStore:
             path = month_file(self.root, year, month)
             write_month_file(path, [*read_month_file(path), *new])
 
+    def replace(self, updated: Iterable[Entry], removed_ids: set[str]) -> None:
+        by_id = {e.id: e for e in updated}
+        pending = set(by_id)
+        for path in ledger_files(self.root):
+            current = read_month_file(path)
+            kept = [by_id.get(e.id, e) for e in current if e.id not in removed_ids]
+            pending -= {e.id for e in current}
+            if kept != current:
+                write_month_file(path, kept)
+        if pending:
+            raise FinanceError(f"lançamento não encontrado: {', '.join(sorted(pending))}")
+
     def load_month(self, year: int, month: int) -> list[Entry]:
         return read_month_file(month_file(self.root, year, month))
 
