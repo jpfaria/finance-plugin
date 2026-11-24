@@ -11,6 +11,20 @@ class Status(StrEnum):
     CONFIRMED = "confirmed"
 
 
+class CategorySource(StrEnum):
+    """Where `Entry.category` came from — what `finance recategorize` may overwrite.
+
+    NONE: no category yet. RULE: applied by `rules.yaml` (on import or on
+    recategorize), so a later run of the rules may replace it. MANUAL: the user
+    chose it by hand (`categorize set`, `add --category`); no run of the rules ever
+    touches it, `--force` included.
+    """
+
+    NONE = ""
+    RULE = "rule"
+    MANUAL = "manual"
+
+
 @dataclass(frozen=True)
 class Entry:
     id: str
@@ -19,6 +33,7 @@ class Entry:
     amount: Decimal
     description: str
     category: str = ""
+    category_source: CategorySource = CategorySource.NONE
     tags: tuple[str, ...] = ()
     installment: str = ""
     installment_group: str = ""

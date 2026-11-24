@@ -7,7 +7,7 @@ import pytest
 
 from finance.actions.add import AddRequest, build_manual_entries, split_installments
 from finance.model.account import Account, AccountType
-from finance.model.entry import Status
+from finance.model.entry import CategorySource, Status
 from finance.model.errors import FinanceError
 
 CARD = Account(
@@ -50,6 +50,14 @@ def test_single_entry() -> None:
     assert e.source == "manual"
     assert e.installment == ""
     assert e.tags == ("viagem",)
+    assert e.category_source is CategorySource.MANUAL
+
+
+def test_entry_without_category_has_no_category_origin() -> None:
+    req = AddRequest(CHECKING, Decimal("-50.00"), date(2026, 9, 5), "uber", "", (), 1)
+    [e] = build_manual_entries(req, CATS, _id_iter())
+    assert e.category == ""
+    assert e.category_source is CategorySource.NONE
 
 
 def test_installments_spread_over_months_with_group() -> None:

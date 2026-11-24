@@ -13,15 +13,38 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, CSV de conta do Bradesco). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
 | `finance categorize [--month AAAA-MM] [--json]` | Lista lançamentos sem categoria. |
-| `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria e, com `--rule`, grava a regra em `rules.yaml`. |
+| `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria **à mão** e, com `--rule`, grava a regra em `rules.yaml`. |
+| `finance recategorize [--month AAAA-MM] [--group X] [--dry-run] [--force]` | Reaplica `rules.yaml` no que já está gravado. Sem flags, só mexe em quem está sem categoria. |
 
 `--account` aceita o `id` exato ou parte do nome (`"nubank cart"`); ambiguidade é erro.
+
+## Regra nova no histórico: `recategorize`
+
+`rules.yaml` é aplicado no `import`, mas uma regra escrita (ou corrigida) depois não precisa de reimportação: `finance recategorize` reaplica as regras nos lançamentos que já estão em `data/ledger/`. Nunca é preciso apagar a base canônica pra mudar uma categoria.
+
+Cada lançamento guarda **de onde veio a categoria**, na coluna `category_source` do CSV:
+
+| `category_source` | Quem gravou | `recategorize` mexe? |
+|---|---|---|
+| vazio | ninguém, lançamento sem categoria | sim, sempre |
+| `rule` | `import` ou `recategorize` | só com `--force` |
+| `manual` | `categorize set` ou `add --category` | **nunca**, nem com `--force` |
+
+Lançamento gravado antes dessa coluna existir conta como `rule` quando tem categoria — a migração é automática, na primeira leitura.
+
+```bash
+finance recategorize --dry-run              # o que mudaria, sem gravar
+finance recategorize                        # pega só quem está sem categoria
+finance recategorize --force --month 2026-09  # reavalia também categoria de regra
+```
+
+Regra que não casa mais **não apaga** a categoria que ela pôs antes: `--force` com `rules.yaml` vazio não zera a base. Transferência fica fora do escopo, igual ao `finance categorize`. A saída lista cada mudança (`id  data  descrição: antes -> depois`) e fecha com quantos mudaram e quantos seguem sem categoria.
 
 ## Grupos de conta
 
 Cada conta pode declarar `group: <nome livre>` em `accounts.yaml` — "pessoal", "pj", "familia", quantos você quiser. A lista de grupos sai das próprias contas; não existe segundo arquivo pra desincronizar.
 
-`report month`, `report budget` e `report balance` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
+`report month`, `report budget`, `report balance` e `recategorize` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
 
 ## Orçamento
 

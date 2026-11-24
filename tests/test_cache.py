@@ -10,7 +10,7 @@ from finance.cache.rebuild import rebuild
 from finance.config.accounts import load_accounts
 from finance.config.budget import Budget
 from finance.ledger.store import LedgerStore
-from finance.model.entry import Entry
+from finance.model.entry import CategorySource, Entry
 
 
 def _e(id_: str, d: date, amount: str) -> Entry:
@@ -35,6 +35,28 @@ def test_rebuild_loads_entries_accounts_budget(data_root: Path, cache_root: Path
     assert conn.execute("select count(*) from accounts").fetchone()[0] == 3
     assert conn.execute("select amount from budget where category='casa/luz'").fetchone()[0] == (
         "250.00"
+    )
+
+
+def test_rebuild_keeps_the_category_origin(data_root: Path, cache_root: Path) -> None:
+    LedgerStore(data_root).append(
+        [
+            Entry(
+                id="A",
+                date=date(2026, 9, 1),
+                account="nu",
+                amount=Decimal("-10.00"),
+                description="uber",
+                category="transporte/uber",
+                category_source=CategorySource.MANUAL,
+            )
+        ]
+    )
+    db = cache_root / "finance.db"
+    rebuild(data_root, db, load_accounts(data_root / "accounts.yaml"), Budget())
+    conn = sqlite3.connect(db)
+    assert conn.execute("select category_source from entries where id='A'").fetchone()[0] == (
+        "manual"
     )
 
 

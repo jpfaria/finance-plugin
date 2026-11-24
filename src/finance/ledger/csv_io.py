@@ -6,10 +6,11 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from finance.model.entry import Entry, Status
+from finance.model.entry import CategorySource, Entry, Status
 from finance.model.money import format_amount
 
 TAG_SEPARATOR = ";"
+CATEGORY_SOURCE_COLUMN = "category_source"
 
 COLUMNS: tuple[str, ...] = (
     "id",
@@ -18,6 +19,7 @@ COLUMNS: tuple[str, ...] = (
     "amount",
     "description",
     "category",
+    CATEGORY_SOURCE_COLUMN,
     "tags",
     "installment",
     "installment_group",
@@ -36,6 +38,7 @@ def entry_to_row(entry: Entry) -> dict[str, str]:
         "amount": format_amount(entry.amount),
         "description": entry.description,
         "category": entry.category,
+        CATEGORY_SOURCE_COLUMN: entry.category_source.value,
         "tags": TAG_SEPARATOR.join(entry.tags),
         "installment": entry.installment,
         "installment_group": entry.installment_group,
@@ -46,14 +49,30 @@ def entry_to_row(entry: Entry) -> dict[str, str]:
     }
 
 
+def _category_source(row: dict[str, str], category: str) -> CategorySource:
+    """The recorded origin; absent column -> a category counts as rule-applied.
+
+    Lines written before the column existed carry no origin. Treating them as
+    rule-applied is what keeps the migration free of a manual step: `recategorize`
+    without `--force` ignores them anyway (they have a category), and with
+    `--force` they are exactly the ones the user wants re-evaluated.
+    """
+    recorded = row.get(CATEGORY_SOURCE_COLUMN)
+    if recorded is None:
+        return CategorySource.RULE if category else CategorySource.NONE
+    return CategorySource(recorded)
+
+
 def row_to_entry(row: dict[str, str]) -> Entry:
+    category = row.get("category", "")
     return Entry(
         id=row["id"],
         date=date.fromisoformat(row["date"]),
         account=row["account"],
         amount=Decimal(row["amount"]),
         description=row["description"],
-        category=row.get("category", ""),
+        category=category,
+        category_source=_category_source(row, category),
         tags=tuple(t for t in row.get("tags", "").split(TAG_SEPARATOR) if t),
         installment=row.get("installment", ""),
         installment_group=row.get("installment_group", ""),

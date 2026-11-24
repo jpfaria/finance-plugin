@@ -9,6 +9,7 @@ from finance.cli.add import add
 from finance.cli.categorize import categorize_app
 from finance.cli.import_cmd import import_statement
 from finance.cli.rebuild import rebuild
+from finance.cli.recategorize import recategorize
 from finance.cli.reconcile import reconcile
 from finance.cli.report import report_app
 
@@ -37,5 +38,6 @@ app.command("add")(add)
 app.command("import")(import_statement)
 app.command("reconcile")(reconcile)
 app.add_typer(categorize_app, name="categorize")
+app.command("recategorize")(recategorize)
 app.command("rebuild")(rebuild)
 app.add_typer(report_app, name="report")
