@@ -12,9 +12,15 @@ O que existe hoje e o que vem depois. Escopo entregue está na spec (`docs/super
 
 ## Próximo
 
-1. **Bot do Telegram.** Lançar e consultar por mensagem, sem abrir o Claude Code. O bot chama o mesmo CLI que as skills — nenhuma regra de negócio nova. A decidir: onde roda, como autentica (restringir ao chat id do dono) e como faz commit/push do `data/` depois de cada escrita.
-2. **Relatórios bonitos com previsão.** Saída visual além da tabela, e projeção: parcelas futuras já lançadas, faturas a vencer, renda recorrente. Hoje o relatório só olha pra trás.
-3. **Renda fixa vs variável.** As categorias já existem (`salario`, `freelance`, `aluguel-recebido`, `venda`); falta o relatório que separa o que é previsível do que não é.
+1. **Projetos com rateio** ([#6](https://github.com/jpfaria/finance-plugin/issues/6)).
+   Separar obra, barco e imóvel de temporada do gasto pessoal: projeto como tag,
+   rateio em `data/projects.yaml`, acerto por participante e
+   `finance report project`. Dinheiro que volta de rateio é devolução, não
+   receita. Desenho em `docs/projetos-rateio/README.md`; o preenchimento
+   automático da tag espera a [#5](https://github.com/jpfaria/finance-plugin/issues/5).
+2. **Bot do Telegram.** Lançar e consultar por mensagem, sem abrir o Claude Code. O bot chama o mesmo CLI que as skills — nenhuma regra de negócio nova. A decidir: onde roda, como autentica (restringir ao chat id do dono) e como faz commit/push do `data/` depois de cada escrita.
+3. **Relatórios bonitos com previsão.** Saída visual além da tabela, e projeção: parcelas futuras já lançadas, faturas a vencer, renda recorrente. Hoje o relatório só olha pra trás.
+4. **Renda fixa vs variável.** As categorias já existem (`salario`, `freelance`, `aluguel-recebido`, `venda`); falta o relatório que separa o que é previsível do que não é.
 
 ## Depois
 
