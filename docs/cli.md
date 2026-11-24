@@ -62,7 +62,7 @@ Num relatório com `--group pj`, `transporte/uber` usa 500; qualquer categoria s
 
 ## Trocar o CSV pelo PDF na conta do Bradesco
 
-No CSV da conta, todo PIX vira `PIX ENVIADO` ou `PIX RECEBIDO` sem nome — nenhuma regra de categoria consegue casar. O PDF do extrato (no app: Extrato → exportar) traz o favorecido, e a descrição importada fica `PIX ENVIADO — POSTO EXEMPLO`. **Para a conta do Bradesco, prefira o PDF.**
+No CSV da conta, todo PIX vira `PIX ENVIADO` ou `PIX RECEBIDO` sem nome, e boleto vira `PAGTO ELETRON COBRANCA` — nenhuma regra de categoria consegue casar. O PDF do extrato (no app: Extrato → exportar) traz a outra ponta na linha de baixo do lançamento, e a descrição importada fica `PIX ENVIADO — POSTO EXEMPLO`, `PAGTO ELETRON COBRANCA — CONDOMINIO EXEMPLO`, `CONTA DE LUZ — ENEL DISTRIB. RJ-00012345`. **Para a conta do Bradesco, prefira o PDF.**
 
 O preço de trocar: o dedupe é por hash de `conta|data|valor|descrição|docto`, e a descrição é exatamente o que muda. Reimportar o PDF de um período que já entrou pelo CSV **duplica cada lançamento** — e `finance reconcile` não pega isso, porque ele casa manual com importado, não importado com importado. Não existe migração automática: apague o que veio do CSV e importe o PDF.
 

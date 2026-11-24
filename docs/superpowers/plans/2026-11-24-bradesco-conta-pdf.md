@@ -25,8 +25,13 @@ Cada lançamento ocupa **duas linhas**:
 - `Docto.` tem 7 dígitos e é o que distingue dois lançamentos iguais no mesmo
   dia — vai pra `external_id`, igual ao CSV.
 - Lançamento que não é PIX pode ter segunda linha (`CONTA DE LUZ` →
-  `ENEL DISTRIB. RJ-00063333060`) ou não ter nenhuma (`GASTOS CARTAO DE
-  CREDITO`, `LIB EMPRESTIM/FINANCIAM`).
+  `ENEL DISTRIB. RJ-00063333060`, `PAGTO ELETRON COBRANCA` → `PAGAR.ME S.A.`)
+  ou não ter nenhuma (`GASTOS CARTAO DE CREDITO`, `LIB EMPRESTIM/FINANCIAM`).
+  Essa linha vem sem prefixo nenhum, e entra na descrição igual ao nome do PIX:
+  nas 9 folhas da amostra são 22 lançamentos, e **toda** linha que não é
+  lançamento, não é `Total` e não é `DES:`/`REM:` é beneficiário — não existe
+  rodapé nem ruído dentro da área lida. Mesmo assim só a linha imediatamente
+  abaixo do lançamento (e só a primeira) é detalhe dele.
 
 ### O sinal só existe na posição horizontal
 
