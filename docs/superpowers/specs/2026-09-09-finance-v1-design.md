@@ -67,13 +67,14 @@ Um arquivo por mês (mês do `date`). Colunas:
 | `transfer_group` | ULID que liga as duas pontas de uma transferência, senão vazio |
 | `status` | `manual` (dito pelo usuário, ainda não veio no extrato) ou `confirmed` (veio do extrato ou foi conciliado) |
 | `source` | `manual` ou nome do arquivo importado |
-| `import_hash` | sha256 do registro cru do extrato; vazio em `manual` |
+| `import_hash` | sha256 do registro cru do extrato + ordinal da ocorrência; vazio em `manual` |
 
 Regras:
 - Compra no cartão = lançamento na conta `credit` no dia da compra. Parcela = N lançamentos, um por mês, mesma `installment_group`.
 - Pagamento de fatura = transferência `checking → credit` (dois lançamentos com o mesmo `transfer_group`). Transferência não é despesa nem receita.
 - Saldo da conta e fatura do cartão são **derivados** do ledger, nunca digitados.
 - `import_hash` é a chave de dedupe: reimportar o mesmo extrato não duplica.
+- Linhas idênticas (mesma conta, data, valor e descrição) são gastos reais distintos — pedágio de ida e volta, duas rodadas no mesmo bar. O hash carrega o ordinal da ocorrência dentro do extrato (0, 1, 2, …), então N linhas idênticas viram N lançamentos e a reimportação do mesmo arquivo, ou de uma fatura que se sobrepõe a outra, continua não duplicando. Ordinal 0 mantém a chave histórica.
 
 ## Fatura do cartão
 Fatura do mês M de um cartão = soma dos lançamentos daquela conta com `date` entre o fechamento de M-1 (exclusivo) e o fechamento de M (inclusivo), menos pagamentos recebidos no período. `closing_day`/`due_day` vêm de `accounts.yaml`.

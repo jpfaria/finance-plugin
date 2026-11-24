@@ -82,3 +82,11 @@ def test_reconcile_reports_stale_manual(env: Path) -> None:
     _run("add", "--account", "nu", "--amount", "-1", "--desc", "velho", "--date", "2020-01-01")
     data = json.loads(_run("reconcile", "--json"))
     assert [e["description"] for e in data["stale_manual"]] == ["velho"]
+
+
+def test_import_keeps_identical_lines_of_the_same_invoice(env: Path) -> None:
+    fatura = str(FIXTURES / "nubank_card_repeated.csv")
+    out = _run("import", fatura, "--account", "nu-card")
+    assert "importados: 5, duplicados: 0" in out
+    out = _run("import", fatura, "--account", "nu-card")
+    assert "importados: 0, duplicados: 5" in out
