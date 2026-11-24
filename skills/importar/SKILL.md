@@ -17,7 +17,7 @@ uv run --project "${CLAUDE_PLUGIN_ROOT}" finance reconcile
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance categorize
 ```
 
-1. **import** — detecta o formato, ignora o que já foi importado antes (dedupe por hash) e aplica `rules.yaml`. Reimportar o mesmo arquivo é seguro: vira "duplicados".
+1. **import** — detecta o formato, ignora o que já foi importado antes (dedupe por hash) e aplica `rules.yaml`. Reimportar o mesmo arquivo é seguro: vira "duplicados". Linhas idênticas no mesmo arquivo (pedágio de ida e volta, duas compras iguais) entram todas: o dedupe conta a ocorrência.
 2. **reconcile** — casa o que o usuário já tinha lançado à mão com a linha do extrato. Ele relata importados sem par e manuais antigos sem par; mostre essas sobras ao usuário, são o sinal de que algo está errado.
 3. **categorize** — o que sobrou sem categoria. Siga a skill `categorizar`.
 
