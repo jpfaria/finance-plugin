@@ -31,3 +31,15 @@ def test_card_matches_and_parses_with_inverted_sign() -> None:
         (date(2026, 9, 2), Decimal("-42.50"), "Ifood", ""),
         (date(2026, 9, 4), Decimal("500.00"), "Pagamento recebido", ""),
     ]
+
+
+def test_card_parses_brazilian_amounts() -> None:
+    """O app do Nubank exporta `1.111,00` e crédito como `- 54,95`."""
+    records = NubankCardCsv().parse(FIXTURES / "nubank_card_brl.csv")
+    assert [(r.date, r.amount) for r in records] == [
+        (date(2026, 9, 1), Decimal("-1111.00")),
+        (date(2026, 9, 2), Decimal("54.95")),
+        (date(2026, 9, 3), Decimal("15462.78")),
+        (date(2026, 9, 4), Decimal("-129.07")),
+    ]
+    assert records[1].description == 'Estorno de "Loja Exemplo" (Marketplace)'
