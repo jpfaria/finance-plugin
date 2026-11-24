@@ -25,7 +25,7 @@ uv run --project "${CLAUDE_PLUGIN_ROOT}" finance categorize
 
 - **Confirme o arquivo e a conta em uma linha** antes de rodar: `import` grava direto, não tem `--dry-run`. "Importo `fatura-set.csv` na conta `nu-card`?"
 - **Só importe arquivo que o usuário apontou como extrato dele.** Fixture de teste, arquivo de exemplo do repositório do plugin ou arquivo achado por conta própria em `~/Downloads`: não importe, pergunte.
-- **Formatos suportados:** OFX (qualquer banco), CSV de conta do Nubank, CSV de cartão do Nubank. Outro formato → a CLI falha com "formato não reconhecido"; repasse a mensagem e ofereça abrir uma issue com um extrato anonimizado. Nunca tente parsear o arquivo você mesmo.
+- **Formatos suportados:** OFX (qualquer banco), CSV de conta do Nubank, CSV de cartão do Nubank, CSV de conta do Bradesco. Outro formato → a CLI falha com "formato não reconhecido"; repasse a mensagem e ofereça abrir uma issue com um extrato anonimizado. Nunca tente parsear o arquivo você mesmo.
 
 ## Depois
 
