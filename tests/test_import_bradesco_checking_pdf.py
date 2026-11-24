@@ -16,10 +16,20 @@ HEAD = "%PDF-1.4"
 EXPECTED = [
     (date(2026, 10, 1), Decimal("1234.56"), "PIX RECEBIDO — LOJA EXEMPLO LTDA", "1000001"),
     (date(2026, 10, 1), Decimal("-50.00"), "PIX ENVIADO — JOSE DA SILVA EXEMPLO", "1000002"),
-    (date(2026, 10, 1), Decimal("-89.90"), "CONTA DE LUZ", "1000003"),
+    (
+        date(2026, 10, 1),
+        Decimal("-89.90"),
+        "CONTA DE LUZ — DISTRIBUIDORA EXEMPLO-00012345",
+        "1000003",
+    ),
     (date(2026, 10, 2), Decimal("10000.00"), "LIB EMPRESTIM/FINANCIAM", "1000004"),
     (date(2026, 10, 3), Decimal("-1000.00"), "PIX ENVIADO — MARIA DE EXEMPLO SOU", "1000005"),
-    (date(2026, 10, 3), Decimal("500.00"), "TRANSF SALDO C/SAL P/CC", "1000006"),
+    (
+        date(2026, 10, 3),
+        Decimal("500.00"),
+        "TRANSF SALDO C/SAL P/CC — EMPRESA EXEMPLO S/A",
+        "1000006",
+    ),
     (date(2026, 10, 3), Decimal("-94.66"), "GASTOS CARTAO DE CREDITO", "1000007"),
 ]
 
@@ -60,9 +70,23 @@ def test_pix_name_goes_in_the_description() -> None:
     ]
 
 
-def test_entry_without_a_name_keeps_the_history() -> None:
+def test_detail_line_without_des_or_rem_also_goes_in_the_description() -> None:
+    """Não-PIX traz o beneficiário na segunda linha, sem prefixo nenhum."""
     records = parse_statement_pages([page(POWER_BILL, POWER_BILL_DETAIL)])
+    assert records[0].description == "CONTA DE LUZ — DISTRIBUIDORA EXEMPLO-00012345"
+
+
+def test_entry_without_a_second_line_keeps_the_history() -> None:
+    records = parse_statement_pages([page(POWER_BILL)])
     assert records[0].description == "CONTA DE LUZ"
+
+
+def test_line_that_does_not_follow_a_transaction_is_ignored() -> None:
+    """Só a linha imediatamente abaixo do lançamento é detalhe dele."""
+    records = parse_statement_pages(
+        [page(POWER_BILL, POWER_BILL_DETAIL, "            SAC 0800 704 8383")]
+    )
+    assert records[0].description == "CONTA DE LUZ — DISTRIBUIDORA EXEMPLO-00012345"
 
 
 def test_date_is_inherited_from_the_first_transaction_of_the_day() -> None:

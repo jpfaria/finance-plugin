@@ -1,9 +1,17 @@
 """Extrato de conta do Bradesco em PDF (Bradesco Celular → Extrato → exportar).
 
-O CSV do mesmo extrato traz `PIX ENVIADO` / `PIX RECEBIDO` sem nome nenhum. O
-PDF traz o favorecido numa segunda linha do lançamento — `DES:` quando é saída,
-`REM:` quando é entrada —, truncado em 21 caracteres e seguido do dia/mês da
-operação.
+O CSV do mesmo extrato traz `PIX ENVIADO` / `PIX RECEBIDO` / `PAGTO ELETRON
+COBRANCA` sem nome nenhum. O PDF traz a outra ponta numa segunda linha do
+lançamento, logo abaixo dele:
+
+- PIX: `DES:` quando é saída, `REM:` quando é entrada, truncado em 21 caracteres
+  e seguido do dia/mês da operação (`DES: POSTO MARINA VEROLME 27/09`).
+- Qualquer outro lançamento: o beneficiário cru, sem prefixo — `CONTA DE LUZ` →
+  `ENEL DISTRIB. RJ-00063333060`, `PAGTO ELETRON COBRANCA` → `PAGAR.ME S.A.`.
+
+Só a linha imediatamente abaixo do lançamento é detalhe dele (linha em branco no
+meio não conta), e só a primeira: assim nada que venha depois no documento é
+pendurado num lançamento à toa.
 
 O texto plano do PDF perde o que diz se o valor é crédito ou débito: as duas
 colunas existem, e a única diferença entre elas é a posição horizontal. Por isso
@@ -59,7 +67,7 @@ TRANSACTION = re.compile(
 )
 TOTAL = re.compile(rf"^\s*Total\s+{VALUES}\s*$")
 AMOUNT_IN_VALUES = re.compile(AMOUNT)
-COUNTERPARTY = re.compile(r"^(?:DES|REM):\s*(?P<name>\S.*?)(?:\s+\d{2}/\d{2})?$")
+PIX_COUNTERPARTY = re.compile(r"^(?:DES|REM):\s*(?P<name>\S.*?)(?:\s+\d{2}/\d{2})?$")
 WHITESPACE = re.compile(r"\s+")
 
 
@@ -111,23 +119,28 @@ def parse_statement_pages(pages: Sequence[str]) -> list[ImportedRecord]:
     rows: list[_Row] = []
     totals: tuple[Decimal, Decimal] | None = None
     current: date | None = None
+    detailed: _Row | None = None
     for page in pages:
         lines = [line.rstrip() for line in page.splitlines()]
         ruler, start = _ruler(lines)
         for line in lines[start:]:
+            if not line.strip():
+                continue
             transaction = TRANSACTION.match(line)
             if transaction is not None:
                 row = _row(transaction, ruler, current)
                 current = row.date
                 rows.append(row)
+                detailed = row
                 continue
             total = TOTAL.match(line)
             if total is not None:
                 totals = _totals(total, ruler)
+                detailed = None
                 continue
-            name = _counterparty(line)
-            if name and rows and not rows[-1].name:
-                rows[-1].name = name
+            if detailed is not None and not detailed.name:
+                detailed.name = _counterparty(line)
+            detailed = None
     _check_totals(rows, totals)
     return [row.record() for row in rows]
 
@@ -192,9 +205,15 @@ def _date(text: str | None, current: date | None, line: str) -> date:
 
 
 def _counterparty(line: str) -> str:
-    """Nome do favorecido (`DES:`) ou do remetente (`REM:`), sem o dia/mês da operação."""
-    match = COUNTERPARTY.match(line.strip())
-    return "" if match is None else match.group("name").strip()
+    """A outra ponta do lançamento, lida da linha logo abaixo dele.
+
+    Em PIX ela vem prefixada (`DES:` favorecido, `REM:` remetente) e termina no
+    dia/mês da operação, que não entra. Nos outros lançamentos a linha é o
+    beneficiário cru e vai inteira.
+    """
+    text = WHITESPACE.sub(" ", line).strip()
+    match = PIX_COUNTERPARTY.match(text)
+    return match.group("name").strip() if match is not None else text
 
 
 def _totals(match: re.Match[str], ruler: _Ruler) -> tuple[Decimal, Decimal]:
