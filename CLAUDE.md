@@ -6,7 +6,7 @@ Plugin Claude Code de controle financeiro pessoal. Spec: `docs/superpowers/specs
 
 - **Nada pessoal aqui.** Este repo é público e vira plugin: nenhum nome de conta, valor, extrato ou preferência de uma pessoa. Dados do usuário moram no repo privado dele (`data/`), lidos via `FINANCE_DATA_DIR`. Exemplos são fictícios, em `examples/data/`.
 - **Idioma:** código em inglês; docs, mensagens ao usuário, skills, commits e issues em pt-BR.
-- **Disciplina de código:** skill `dev` do `claude-plugin@xgodev` (TDD red-first, um módulo = uma responsabilidade). Sem exceção.
+- **Sem gates de desenvolvimento.** Repo pessoal: os hooks de dev-rules do `claude-plugin@xgodev` estão desligados por `.dev-rules/.off` (não versionado — recriar com `touch .dev-rules/.off` em clone novo). Nenhuma sessão reativa e nenhuma pergunta sobre isso: nada de RED-first obrigatório, modo FEATURE, brainstorm/plano formal ou guarda de commit/branch. A skill `dev` vale como referência de bom senso (um módulo = uma responsabilidade, teste junto com o código), nunca como trava.
 - **Regra de negócio só no CLI (`src/finance/`), nunca na skill.** Skill sabe qual comando rodar e como conversar.
 - **`data/` do usuário é o canônico.** `.cache/` e `imports/` são descartáveis e gitignorados. Nunca commitar extrato, nem de exemplo.
 - **Dinheiro é `Decimal`** com 2 casas. Negativo = saída, positivo = entrada.
