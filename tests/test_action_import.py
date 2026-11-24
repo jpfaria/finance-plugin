@@ -7,7 +7,7 @@ from finance.actions.import_statement import build_import_entries
 from finance.config.rules import Rule
 from finance.imports.record import ImportedRecord, record_hash
 from finance.model.account import Account, AccountType
-from finance.model.entry import Status
+from finance.model.entry import CategorySource, Status
 
 NU = Account(id="nu", name="Nubank conta", bank="nubank", type=AccountType.CHECKING)
 
@@ -35,6 +35,8 @@ def test_dedupe_rules_and_uncategorized() -> None:
     assert uber.import_hash == record_hash("nu", records[0])
     assert pix.category == ""
     assert pix.account == "nu"
+    assert uber.category_source is CategorySource.RULE
+    assert pix.category_source is CategorySource.NONE
 
 
 def _repeated(times: int) -> list[ImportedRecord]:

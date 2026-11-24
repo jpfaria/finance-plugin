@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 
 from finance.actions.categorize import pending, set_category
-from finance.model.entry import Entry
+from finance.model.entry import CategorySource, Entry
 from finance.model.errors import FinanceError
 
 CATS = frozenset({"casa/luz"})
@@ -31,6 +31,13 @@ def test_pending_filters_month_and_transfers() -> None:
     ]
     assert [e.id for e in pending(entries, 2026, 9)] == ["a"]
     assert [e.id for e in pending(entries, None, None)] == ["a", "d"]
+
+
+def test_set_category_marks_the_category_as_manual() -> None:
+    entries = [_e("a", date(2026, 9, 1))]
+    updated = set_category(entries, "a", "casa/luz", CATS)
+    assert updated.category == "casa/luz"
+    assert updated.category_source is CategorySource.MANUAL
 
 
 def test_set_category() -> None:

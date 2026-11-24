@@ -9,6 +9,7 @@ create table entries (
   amount text not null,
   description text not null,
   category text not null,
+  category_source text not null,
   tags text not null,
   installment text not null,
   installment_group text not null,

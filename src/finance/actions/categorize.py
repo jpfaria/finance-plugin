@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from dataclasses import replace
 
-from finance.model.entry import Entry
+from finance.model.entry import CategorySource, Entry
 from finance.model.errors import FinanceError
 
 
@@ -25,5 +25,5 @@ def set_category(
         raise FinanceError(f"categoria desconhecida: {category!r}")
     for entry in entries:
         if entry.id == entry_id:
-            return replace(entry, category=category)
+            return replace(entry, category=category, category_source=CategorySource.MANUAL)
     raise FinanceError(f"lançamento não encontrado: {entry_id!r}")

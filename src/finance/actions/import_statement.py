@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from finance.config.rules import Rule, apply_rules
 from finance.imports.record import ImportedRecord, record_hash, record_key
 from finance.model.account import Account
-from finance.model.entry import Entry, Status
+from finance.model.entry import CategorySource, Entry, Status
 
 
 @dataclass(frozen=True)
@@ -35,6 +35,7 @@ def build_import_entries(
         if digest in existing_hashes:
             duplicates += 1
             continue
+        category = apply_rules(rules, record.description)
         new.append(
             Entry(
                 id=next(ids),
@@ -42,7 +43,8 @@ def build_import_entries(
                 account=account.id,
                 amount=record.amount,
                 description=record.description,
-                category=apply_rules(rules, record.description),
+                category=category,
+                category_source=CategorySource.RULE if category else CategorySource.NONE,
                 status=Status.CONFIRMED,
                 source=source,
                 import_hash=digest,

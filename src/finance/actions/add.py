@@ -7,7 +7,7 @@ from decimal import ROUND_DOWN, Decimal
 
 from finance.model.account import Account
 from finance.model.dates import add_months
-from finance.model.entry import Entry, Status
+from finance.model.entry import CategorySource, Entry, Status
 from finance.model.errors import FinanceError
 from finance.model.money import CENTS
 
@@ -43,6 +43,9 @@ def build_manual_entries(
     if installed and not req.account.is_credit:
         raise FinanceError("parcelas só existem em cartão de crédito")
     parts = split_installments(req.amount, req.installments)
+    # A category typed on the command line is the user's own call, not a rule's:
+    # `recategorize --force` must never replace it.
+    category_source = CategorySource.MANUAL if req.category else CategorySource.NONE
     group = ""
     entries: list[Entry] = []
     for index, part in enumerate(parts):
@@ -57,6 +60,7 @@ def build_manual_entries(
                 amount=part,
                 description=req.description,
                 category=req.category,
+                category_source=category_source,
                 tags=req.tags,
                 installment=f"{index + 1}/{req.installments}" if installed else "",
                 installment_group=group,
