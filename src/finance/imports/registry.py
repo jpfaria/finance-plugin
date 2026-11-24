@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from finance.imports.bradesco_card_pdf import BradescoCardPdf
 from finance.imports.bradesco_checking_csv import BradescoCheckingCsv
 from finance.imports.nubank_card_csv import NubankCardCsv
 from finance.imports.nubank_checking_csv import NubankCheckingCsv
@@ -14,6 +15,7 @@ PARSERS: tuple[Parser, ...] = (
     NubankCheckingCsv(),
     NubankCardCsv(),
     BradescoCheckingCsv(),
+    BradescoCardPdf(),
 )
 HEAD_CHARS = 512
 

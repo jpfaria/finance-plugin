@@ -6,7 +6,7 @@ O que existe hoje e o que vem depois. Escopo entregue está na spec (`docs/super
 
 - CLI: `add` (com parcelas), `import`, `reconcile`, `categorize`, `recategorize`, `rebuild`, `report month|budget|balance|invoice`.
 - Origem da categoria (`category_source`): regra nova pega lançamento antigo sem reimportar, e `recategorize --force` nunca encosta em categoria posta à mão.
-- Extratos: OFX (qualquer banco), CSV de conta e de cartão do Nubank, CSV de conta do Bradesco.
+- Extratos: OFX (qualquer banco), CSV de conta e de cartão do Nubank, CSV de conta do Bradesco, PDF da fatura do cartão Bradesco.
 - Grupos de conta livres (`group:` em `accounts.yaml`), `--group` nos relatórios, orçamento geral + por grupo.
 - Skills: `lancar`, `importar`, `categorizar`, `fechar-mes`, `saldo`.
 
@@ -15,7 +15,6 @@ O que existe hoje e o que vem depois. Escopo entregue está na spec (`docs/super
 1. **Bot do Telegram.** Lançar e consultar por mensagem, sem abrir o Claude Code. O bot chama o mesmo CLI que as skills — nenhuma regra de negócio nova. A decidir: onde roda, como autentica (restringir ao chat id do dono) e como faz commit/push do `data/` depois de cada escrita.
 2. **Relatórios bonitos com previsão.** Saída visual além da tabela, e projeção: parcelas futuras já lançadas, faturas a vencer, renda recorrente. Hoje o relatório só olha pra trás.
 3. **Renda fixa vs variável.** As categorias já existem (`salario`, `freelance`, `aluguel-recebido`, `venda`); falta o relatório que separa o que é previsível do que não é.
-4. **Extrato do Bradesco em PDF.** Bloqueado: falta uma amostra anonimizada para escrever o parser. O CSV de conta já está entregue.
 
 ## Depois
 

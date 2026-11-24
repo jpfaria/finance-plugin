@@ -11,7 +11,7 @@ Plugin Claude Code de controle financeiro pessoal. Spec: `docs/superpowers/specs
 - **`data/` do usuário é o canônico.** `.cache/` e `imports/` são descartáveis e gitignorados. Nunca commitar extrato, nem de exemplo.
 - **Dinheiro é `Decimal`** com 2 casas. Negativo = saída, positivo = entrada.
 - **`.gitignore` ancorado na raiz** (`/imports/`, `/.cache/`). `imports/` sem a barra casa com diretório de qualquer nível e ignorava o pacote `src/finance/imports/`. Não "simplificar".
-- **Parser de extrato só com amostra real anonimizada.** Layout inventado quebra dado real em silêncio; por isso o Bradesco está bloqueado (ver `docs/roadmap.md`).
+- **Parser de extrato só com amostra real anonimizada.** Layout inventado quebra dado real em silêncio. O CSV da conta e o PDF da fatura do cartão do Bradesco saíram de extratos reais; as fixtures do repo são cópias anonimizadas com o mesmo layout (ver `docs/roadmap.md`).
 - Antes de commitar: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q`.
 
 ## Layout
