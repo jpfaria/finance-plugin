@@ -15,6 +15,7 @@ Rode a partir do diretório do projeto de dados do usuário:
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance report month --month AAAA-MM
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance report invoice --account <cartão> --month AAAA-MM
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance reconcile
+uv run --project "${CLAUDE_PLUGIN_ROOT}" finance transfer
 ```
 
 Uma `report invoice` por conta `type: credit` em `data/accounts.yaml`. Use `--json` quando for reformatar a saída; sem `--json` a CLI já imprime tabela pronta.
@@ -25,6 +26,7 @@ Uma `report invoice` por conta `type: credit` em `data/accounts.yaml`. Use `--js
 2. As categorias que estouraram o orçamento (`%` acima de 100), maior primeiro. Só essas.
 3. Uma linha por cartão: total a pagar e vencimento.
 4. Pendências, se houver: `sem categoria` maior que zero → chame a skill `categorizar`; `manuais pendentes` maior que zero ou sobras no `reconcile` → diga que falta importar o extrato.
+5. Par candidato a transferência no `finance transfer` → mostre o par e pergunte se é transferência antes de marcar. Pagamento de fatura e PIX entre contas do próprio usuário não são despesa: enquanto não estiverem marcados, a despesa do mês conta o cartão duas vezes. Nunca marque por conta própria, e nunca marque o pagamento de um cartão cujas compras não estão no ledger (aí o pagamento é o único registro daquele gasto) — ver `docs/cli.md`.
 
 ## Nunca
 
