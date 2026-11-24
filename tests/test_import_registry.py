@@ -16,6 +16,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
         ("nubank_card.csv", "nubank-card-csv"),
         ("bradesco_checking.csv", "bradesco-checking-csv"),
         ("bradesco_card.pdf", "bradesco-card-pdf"),
+        ("bradesco_checking.pdf", "bradesco-checking-pdf"),
     ],
 )
 def test_detects_fixture(name: str, parser: str) -> None:
