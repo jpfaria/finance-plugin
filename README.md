@@ -29,6 +29,6 @@ FINANCE_DATA_DIR=examples/data uv run finance report balance
 
 ## Comandos
 
-Ver `docs/cli.md`. Formatos de extrato suportados: OFX (qualquer banco) e os CSV de conta e cartão do Nubank.
+Ver `docs/cli.md`. Formatos de extrato suportados: OFX (qualquer banco), os CSV de conta e cartão do Nubank, o CSV de conta do Bradesco e o PDF da fatura do cartão Bradesco.
 
 Roadmap: `docs/roadmap.md`. Design: `docs/superpowers/specs/2026-09-09-finance-v1-design.md`.

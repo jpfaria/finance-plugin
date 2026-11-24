@@ -1,0 +1,17 @@
+﻿Extrato de: Ag: 0000 | Conta: 00000-0;;;;;
+Data;Histórico;Docto.;Crédito (R$);Débito (R$);Saldo (R$)
+01/10/2026;PIX RECEBIDO;1000001;1.234,56; ;1.234,56
+02/10/2026;CONTA DE LUZ;1000002; ;89,90;1.144,66
+03/10/2026;PIX ENVIADO;1000003; ;50,00;1.094,66
+03/10/2026;PIX ENVIADO;1000004; ;50,00;1.044,66
+04/10/2026;TRANSF SALDO C/SAL P/CC;1000005;10.000,00; ;11.044,66
+;;;;;
+;;;;;
+Os dados acima tem como base 05/10/2026 às 10:00 e estão sujeitos a alterações.;;;;;
+;;;;;
+;;;;;
+Lançamentos periódicos;;;;;
+Data;Histórico;Docto.;Crédito (R$);Débito (R$);
+;;;;Não há lançamentos disponíveis;;;;
+
+;;Total;0,00;0,00;0,00;

@@ -1,10 +1,11 @@
 """Turn parsed statement records into confirmed ledger entries (dedupe + rules)."""
 
+from collections import Counter
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 
 from finance.config.rules import Rule, apply_rules
-from finance.imports.record import ImportedRecord, record_hash
+from finance.imports.record import ImportedRecord, record_hash, record_key
 from finance.model.account import Account
 from finance.model.entry import Entry, Status
 
@@ -26,13 +27,14 @@ def build_import_entries(
 ) -> ImportResult:
     new: list[Entry] = []
     duplicates = 0
-    seen = set(existing_hashes)
+    occurrences: Counter[str] = Counter()
     for record in records:
-        digest = record_hash(account.id, record)
-        if digest in seen:
+        key = record_key(account.id, record)
+        digest = record_hash(account.id, record, occurrences[key])
+        occurrences[key] += 1
+        if digest in existing_hashes:
             duplicates += 1
             continue
-        seen.add(digest)
         new.append(
             Entry(
                 id=next(ids),

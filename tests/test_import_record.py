@@ -16,3 +16,12 @@ def test_hash_changes_with_external_id() -> None:
     a = ImportedRecord(date(2026, 9, 1), Decimal("-10.00"), "x", "1")
     b = ImportedRecord(date(2026, 9, 1), Decimal("-10.00"), "x", "2")
     assert record_hash("nu", a) != record_hash("nu", b)
+
+
+def test_hash_distinguishes_repeated_occurrences() -> None:
+    rec = ImportedRecord(date(2026, 9, 5), Decimal("-7.70"), "pedagio", "")
+    first = record_hash("nu", rec)
+    second = record_hash("nu", rec, occurrence=1)
+    assert first == record_hash("nu", rec, occurrence=0)
+    assert first != second
+    assert len(second) == 64

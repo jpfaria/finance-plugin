@@ -35,3 +35,32 @@ def test_dedupe_rules_and_uncategorized() -> None:
     assert uber.import_hash == record_hash("nu", records[0])
     assert pix.category == ""
     assert pix.account == "nu"
+
+
+def _repeated(times: int) -> list[ImportedRecord]:
+    rec = ImportedRecord(date(2026, 9, 5), Decimal("-7.70"), "PEDAGIO EXEMPLO", "")
+    return [rec] * times
+
+
+def test_identical_records_in_one_file_all_enter() -> None:
+    result = build_import_entries(_repeated(4), NU, "fatura.csv", set(), [], _ids())
+    assert result.duplicates == 0
+    assert len(result.new) == 4
+    assert len({e.import_hash for e in result.new}) == 4
+
+
+def test_reimporting_the_same_file_duplicates_every_line() -> None:
+    records = _repeated(4)
+    first = build_import_entries(records, NU, "fatura.csv", set(), [], _ids())
+    existing = {e.import_hash for e in first.new}
+    again = build_import_entries(records, NU, "fatura.csv", existing, [], _ids())
+    assert again.new == []
+    assert again.duplicates == 4
+
+
+def test_overlapping_files_import_only_the_extra_occurrence() -> None:
+    first = build_import_entries(_repeated(2), NU, "out.csv", set(), [], _ids())
+    existing = {e.import_hash for e in first.new}
+    second = build_import_entries(_repeated(3), NU, "nov.csv", existing, [], _ids())
+    assert len(second.new) == 1
+    assert second.duplicates == 2
