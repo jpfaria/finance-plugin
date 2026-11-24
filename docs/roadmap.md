@@ -6,7 +6,7 @@ O que existe hoje e o que vem depois. Escopo entregue está na spec (`docs/super
 
 - CLI: `add` (com parcelas), `import`, `reconcile`, `categorize`, `recategorize`, `rebuild`, `report month|budget|balance|invoice`.
 - Origem da categoria (`category_source`): regra nova pega lançamento antigo sem reimportar, e `recategorize --force` nunca encosta em categoria posta à mão.
-- Extratos: OFX (qualquer banco), CSV de conta e de cartão do Nubank, CSV de conta do Bradesco, PDF da fatura do cartão Bradesco.
+- Extratos: OFX (qualquer banco), CSV de conta e de cartão do Nubank, conta do Bradesco em CSV e em PDF (o PDF traz o nome no PIX; ver `docs/cli.md`), PDF da fatura do cartão Bradesco.
 - Grupos de conta livres (`group:` em `accounts.yaml`), `--group` nos relatórios, orçamento geral + por grupo.
 - Skills: `lancar`, `importar`, `categorizar`, `fechar-mes`, `saldo`.
 
