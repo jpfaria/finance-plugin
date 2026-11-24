@@ -10,7 +10,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report budget [--month AAAA-MM] [--json]` | Só categorias com orçamento: gasto, teto, %. |
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
-| `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, CSV de conta do Bradesco, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
+| `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, conta do Bradesco em PDF ou CSV, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
 | `finance categorize [--month AAAA-MM] [--json]` | Lista lançamentos sem categoria. |
 | `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria **à mão** e, com `--rule`, grava a regra em `rules.yaml`. |
@@ -76,8 +76,12 @@ finance report invoice --account nu-card --month 2026-10 --json
 | qualquer | conta ou cartão | OFX |
 | Nubank | conta | CSV (`Data,Valor,Identificador,Descrição`) |
 | Nubank | cartão | CSV (`date,title,amount`) |
-| Bradesco | conta | CSV `;` (cabeçalho `Data;Histórico;Docto.;Crédito (R$);Débito (R$);Saldo (R$)` na 2ª linha) |
+| Bradesco | conta | PDF do extrato (preferido: traz o nome do favorecido) ou CSV `;` (cabeçalho `Data;Histórico;Docto.;Crédito (R$);Débito (R$);Saldo (R$)` na 2ª linha) |
 | Bradesco | cartão | PDF da fatura (o banco não exporta outro formato) |
+
+O extrato de conta do Bradesco em PDF é o formato preferido porque é o único que diz **pra quem** o PIX foi: o CSV traz só `PIX ENVIADO`, o PDF traz o nome numa linha abaixo e a descrição sai como `PIX ENVIADO — Nome do Favorecido`. Detalhe que não é favorecido (código da conta de luz, percentual de encargo, nome do empregador) fica fora da descrição. A data, que só aparece na primeira linha do dia, é herdada pelas seguintes; o sinal vem da coluna em que o valor está (crédito entra, débito sai) e a coluna Saldo é ignorada porque não fecha com o movimento linha a linha.
+
+Importar o mesmo período nos dois formatos duplica os PIX, e só eles: o hash de dedupe inclui a descrição, que no PDF tem o nome do favorecido e no CSV não. As demais linhas (`CONTA DE LUZ`, `GASTOS CARTAO DE CREDITO`) têm data, valor, histórico e `Docto.` iguais nos dois formatos, então o dedupe pega. Escolha um formato por período — e para um período já importado em CSV, apague as linhas dele em `data/ledger/AAAA-MM.csv` antes de importar o PDF. Não existe reconciliação que "enriqueça" o lançamento antigo com o nome: seria adivinhar qual linha é qual.
 
 A fatura do Bradesco em PDF é lida inteira, inclusive os lançamentos que continuam depois do rodapé: data, descrição, valor, parcela (`- Parcela N/M` na descrição) e sinal igual ao do cartão Nubank — compra negativa, pagamento da fatura e estorno positivos. O ano, que não aparece na linha, vem do vencimento impresso na própria fatura.
 
