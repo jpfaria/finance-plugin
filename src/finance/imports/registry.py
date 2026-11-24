@@ -2,13 +2,19 @@
 
 from pathlib import Path
 
+from finance.imports.bradesco_checking_csv import BradescoCheckingCsv
 from finance.imports.nubank_card_csv import NubankCardCsv
 from finance.imports.nubank_checking_csv import NubankCheckingCsv
 from finance.imports.ofx import OfxParser
 from finance.imports.parser import Parser
 from finance.model.errors import FinanceError
 
-PARSERS: tuple[Parser, ...] = (OfxParser(), NubankCheckingCsv(), NubankCardCsv())
+PARSERS: tuple[Parser, ...] = (
+    OfxParser(),
+    NubankCheckingCsv(),
+    NubankCardCsv(),
+    BradescoCheckingCsv(),
+)
 HEAD_CHARS = 512
 
 
