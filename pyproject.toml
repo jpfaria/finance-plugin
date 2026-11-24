@@ -9,6 +9,7 @@ dependencies = [
   "python-ulid>=2",
   "rich>=13",
   "ofxparse>=0.21",
+  "pypdf>=5",
 ]
 
 [project.scripts]

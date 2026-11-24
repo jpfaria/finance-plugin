@@ -10,7 +10,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report budget [--month AAAA-MM] [--json]` | Só categorias com orçamento: gasto, teto, %. |
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
-| `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
+| `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
 | `finance categorize [--month AAAA-MM] [--json]` | Lista lançamentos sem categoria. |
 | `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria e, com `--rule`, grava a regra em `rules.yaml`. |
@@ -53,6 +53,9 @@ finance report invoice --account nu-card --month 2026-10 --json
 | qualquer | conta ou cartão | OFX |
 | Nubank | conta | CSV (`Data,Valor,Identificador,Descrição`) |
 | Nubank | cartão | CSV (`date,title,amount`) |
+| Bradesco | cartão | PDF da fatura (o banco não exporta outro formato) |
+
+A fatura do Bradesco em PDF é lida inteira, inclusive os lançamentos que continuam depois do rodapé: data, descrição, valor, parcela (`- Parcela N/M` na descrição) e sinal igual ao do cartão Nubank — compra negativa, pagamento da fatura e estorno positivos. O ano, que não aparece na linha, vem do vencimento impresso na própria fatura.
 
 Outro banco ou formato: `finance import` falha com "formato não reconhecido". Abra uma issue com um extrato anonimizado para o parser ser escrito — nunca edite o arquivo para "caber" num formato existente.
 
