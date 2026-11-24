@@ -15,8 +15,31 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance categorize [--month AAAA-MM] [--json]` | Lista lançamentos sem categoria. |
 | `finance categorize set <id> <categoria> [--rule "<regex>"]` | Aplica a categoria **à mão** e, com `--rule`, grava a regra em `rules.yaml`. |
 | `finance recategorize [--month AAAA-MM] [--group X] [--dry-run] [--force]` | Reaplica `rules.yaml` no que já está gravado. Sem flags, só mexe em quem está sem categoria. |
+| `finance transfer [--days 5] [--json]` | Lista pares que parecem transferência (valores opostos, contas diferentes) e ainda não estão marcados. |
+| `finance transfer set <id> <id>... [--force]` | Marca as pernas como uma transferência: o `report month` passa a ignorar as duas. |
+| `finance transfer clear <id>...` | Tira a marca. |
 
 `--account` aceita o `id` exato ou parte do nome (`"nubank cart"`); ambiguidade é erro.
+
+## Dinheiro que só muda de lugar: `transfer`
+
+Pagar a fatura do cartão não é despesa nova — a despesa são as compras, que já estão lançadas uma por uma na conta do cartão. Se o pagamento ficar como despesa na conta corrente, o mês conta o cartão duas vezes. O mesmo vale pra PIX entre duas contas do próprio dono.
+
+As duas pernas continuam no ledger (cada extrato traz a sua), mas com o mesmo `transfer_group`:
+
+- `report month` ignora as duas, então nem a saída vira despesa nem a entrada vira receita;
+- `report invoice` lê o crédito marcado como **pagamento** da fatura, não como estorno;
+- `categorize` e `recategorize` não pedem categoria pra elas.
+
+```bash
+finance transfer                            # pares candidatos, com os dois ids
+finance transfer set <id-saida> <id-entrada>
+finance transfer clear <id> <id>            # desfaz
+```
+
+A soma das pernas tem que dar zero: é o que prova que o dinheiro só mudou de lugar. Perna sozinha — a outra está num extrato que não foi importado — só com `--force`, porque aí a decisão é sua e não dá pra conferir.
+
+**Cuidado com o cartão que não é conta no `accounts.yaml`.** Se as compras daquele cartão não estão no ledger, o pagamento da fatura é o *único* registro daquele gasto: marcar como transferência apaga a despesa do relatório. Só marque quando as duas pontas estiverem no ledger.
 
 ## Regra nova no histórico: `recategorize`
 
