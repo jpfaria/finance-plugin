@@ -1,10 +1,12 @@
 """Camada de texto de um PDF — único lugar do projeto que conhece o pypdf."""
 
 from pathlib import Path
+from typing import Final
 
 from pypdf import PdfReader
 
 PAGE_SEPARATOR = "\n"
+LAYOUT_MODE: Final = "layout"
 
 
 def extract_text(path: Path) -> str:
@@ -19,11 +21,13 @@ def extract_text(path: Path) -> str:
 
 
 def extract_layout_pages(path: Path) -> list[str]:
-    """Texto de cada página preservando a posição horizontal de cada coluna.
+    """Texto de cada página preservando as colunas, uma string por página.
 
-    Quem lê tabela de extrato precisa saber em QUE coluna o valor está (crédito
-    ou débito); no texto plano essa informação não existe.
+    O modo layout do pypdf reconstrói a posição horizontal com espaços: é o
+    único jeito de saber em qual coluna um número está (crédito ou débito) num
+    extrato que não repete o rótulo em cada linha. O texto é devolvido por
+    página porque os offsets das colunas variam de uma pra outra.
     """
     with path.open("rb") as fh:
         reader = PdfReader(fh)
-        return [page.extract_text(extraction_mode="layout") or "" for page in reader.pages]
+        return [page.extract_text(extraction_mode=LAYOUT_MODE) or "" for page in reader.pages]
