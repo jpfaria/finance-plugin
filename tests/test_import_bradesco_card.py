@@ -12,17 +12,18 @@ PDF = FIXTURES / "bradesco_card.pdf"
 HEAD = "%PDF-1.4"
 
 # A fatura só traz dia/mês; o ano vem do vencimento (20/09/2026 na fixture).
+# Parcela fica no 1º do mês do vencimento, não no dia da compra (ver `_charge_date`).
 EXPECTED = [
     (date(2026, 8, 20), Decimal("900.00"), "PAGTO. POR DEB EM C/C"),
     (date(2026, 9, 4), Decimal("-2.50"), "CUSTO TRANS. EXTERIOR-IOF"),
     (date(2026, 9, 4), Decimal("-38.50"), "IOF S/ TRANS INTER REAIS"),
-    (date(2026, 3, 29), Decimal("-10.00"), "LOJA EXEMPLO ASSINA CIDADE EXEMP - Parcela 5/21"),
+    (date(2026, 9, 1), Decimal("-10.00"), "LOJA EXEMPLO ASSINA CIDADE EXEMP - Parcela 5/21"),
     (date(2026, 8, 20), Decimal("-50.00"), "SERVICO EXEMPLO USD 10,00 EXEMPLOPASSC US"),
     (date(2026, 8, 31), Decimal("-100.00"), "MERCADO EXEMPLO CIDADE EXEMP"),
     (date(2026, 9, 2), Decimal("-20.00"), "RESTAURANTE EXEMPL ANGRA DOS REI"),
-    (date(2025, 10, 22), Decimal("-25.00"), "MP*LOJAEXEMPLO BAURU - Parcela 10/12"),
-    (date(2025, 10, 24), Decimal("-30.00"), "MP*OUTRALOJAEXEM CAJAMAR - Parcela 10/12"),
-    (date(2025, 10, 7), Decimal("-45.00"), "MP*LOJAEXEMPLOTRES SANTANA DE PA - Parcela 11/12"),
+    (date(2026, 9, 1), Decimal("-25.00"), "MP*LOJAEXEMPLO BAURU - Parcela 10/12"),
+    (date(2026, 9, 1), Decimal("-30.00"), "MP*OUTRALOJAEXEM CAJAMAR - Parcela 10/12"),
+    (date(2026, 9, 1), Decimal("-45.00"), "MP*LOJAEXEMPLOTRES SANTANA DE PA - Parcela 11/12"),
     (date(2026, 8, 6), Decimal("-100.00"), "SERVICO EXEMPLO DOIS 100,00 EXEMPLO.C OM"),
     (date(2026, 9, 3), Decimal("18.50"), "ESTORNO EXEMPLO CIDADE EXEMP"),
     (date(2026, 9, 4), Decimal("-600.00"), "ULTIMA COMPRA EXEMPLO CIDADE EXEMP"),
@@ -79,6 +80,14 @@ def test_credit_is_positive_and_debit_negative() -> None:
 def test_date_without_year_before_the_due_date_is_the_previous_year() -> None:
     text = "Vencimento\n20/09/2026\n21/09 COMPRA EXEMPLO CIDADE EXEMP 10,00\n"
     assert parse_statement_text(text)[0].date == date(2025, 9, 21)
+
+
+def test_installment_is_dated_in_the_month_of_the_invoice() -> None:
+    """A parcela é cobrada agora; a data da compra deixaria a despesa num mês que já passou."""
+    text = "Vencimento\n20/09/2026\n29/03 LOJA EXEMPLO 08/12 CIDADE EXEMP 10,00\n"
+    record = parse_statement_text(text)[0]
+    assert record.date == date(2026, 9, 1)
+    assert record.description == "LOJA EXEMPLO CIDADE EXEMP - Parcela 8/12"
 
 
 def test_invoice_without_due_date_is_a_clear_error() -> None:
