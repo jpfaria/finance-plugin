@@ -120,7 +120,7 @@ finance report invoice --account nu-card --month 2026-10 --json
 
 O extrato de conta do Bradesco em PDF é lido com as colunas preservadas: é a posição de `Crédito (R$)` e `Débito (R$)` que diz se o valor é entrada ou saída, e a régua é lida no cabeçalho de cada folha. A data vem da primeira transação do dia (as seguintes herdam) e as somas são conferidas com a linha `Total` — se não fecham, o import falha em vez de entrar faltando lançamento.
 
-A fatura do Bradesco em PDF é lida inteira, inclusive os lançamentos que continuam depois do rodapé: data, descrição, valor, parcela (`- Parcela N/M` na descrição) e sinal igual ao do cartão Nubank — compra negativa, pagamento da fatura e estorno positivos. O ano, que não aparece na linha, vem do vencimento impresso na própria fatura.
+A fatura do Bradesco em PDF é lida inteira, inclusive os lançamentos que continuam depois do rodapé: data, descrição, valor, parcela (`- Parcela N/M` na descrição) e sinal igual ao do cartão Nubank — compra negativa, pagamento da fatura e estorno positivos. O ano, que não aparece na linha, vem do vencimento impresso na própria fatura. Parcela é gravada no 1º dia do mês do vencimento, não no dia da compra original: a cobrança é agora, e a data antiga jogaria a despesa num mês que já fechou.
 
 Outro banco ou formato: `finance import` falha com "formato não reconhecido". Abra uma issue com um extrato anonimizado para o parser ser escrito — nunca edite o arquivo para "caber" num formato existente.
 
