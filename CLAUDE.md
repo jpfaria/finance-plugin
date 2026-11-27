@@ -12,6 +12,7 @@ Plugin Claude Code de controle financeiro pessoal. Spec: `docs/superpowers/specs
 - **Dinheiro é `Decimal`** com 2 casas. Negativo = saída, positivo = entrada.
 - **`.gitignore` ancorado na raiz** (`/imports/`, `/.cache/`). `imports/` sem a barra casa com diretório de qualquer nível e ignorava o pacote `src/finance/imports/`. Não "simplificar".
 - **Parser de extrato só com amostra real anonimizada.** Layout inventado quebra dado real em silêncio. O CSV da conta e o PDF da fatura do cartão do Bradesco saíram de extratos reais; as fixtures do repo são cópias anonimizadas com o mesmo layout (ver `docs/roadmap.md`).
+- **Número que eu afirmo sai de um comando, não da cabeça.** Toda soma, total, agrupamento ou comparação dita ao usuário vem do CLI (`finance report …`) ou de uma consulta ao CSV — nunca de somar linhas do relatório de cabeça, e nunca de comentário extra do tipo "X somou tanto" ou "sem contar Y". Agrupamento que o relatório não imprime: rode outra consulta antes de falar. Não rodou, não fala. **Why:** (2026-11-27) juntei categorias do relatório por conta própria e afirmei que faltava um item que nem caía naquele mês — "vc nao pode deduzir sem ter certeza.. pq vc vai errar as contas todas".
 - Antes de commitar: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q`.
 
 ## Layout
