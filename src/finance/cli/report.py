@@ -1,6 +1,7 @@
 """`finance report *`: read-only views over the cache."""
 
 from datetime import date
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -10,9 +11,12 @@ from finance.cli.context import Context, load_context, resolve_account, resolve_
 from finance.model.dates import add_months, parse_month
 from finance.model.errors import FinanceError
 from finance.render.output import emit_json, emit_table
+from finance.render.pdf import html_to_pdf
+from finance.render.report_html import forecast_html
 from finance.reports.balance import account_balances
 from finance.reports.forecast import (
     DEFAULT_BASE_MONTHS,
+    Forecast,
     base_before,
     months_between,
 )
@@ -168,6 +172,28 @@ def invoice(
     run(_go)
 
 
+def _forecast(
+    month: str | None, base: int, since: str | None, until: str | None, group: str | None
+) -> Forecast:
+    ctx = load_context()
+    year, m = _next_month(month)
+    if since is not None or until is not None:
+        if since is None or until is None:
+            raise FinanceError("use --from e --to juntos")
+        months = months_between(parse_month(since), parse_month(until))
+    else:
+        months = base_before(year, m, base)
+    selected = resolve_group(ctx, group)
+    conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
+    return build_forecast(
+        conn,
+        (year, m),
+        months,
+        accounts=None if group is None else set(selected),
+        group=group,
+    )
+
+
 @report_app.command("forecast")
 def forecast(
     month: Annotated[
@@ -184,23 +210,7 @@ def forecast(
     """Previsão por categoria: o que cada uma costuma custar por mês."""
 
     def _go() -> None:
-        ctx = load_context()
-        year, m = _next_month(month)
-        if since is not None or until is not None:
-            if since is None or until is None:
-                raise FinanceError("use --from e --to juntos")
-            months = months_between(parse_month(since), parse_month(until))
-        else:
-            months = base_before(year, m, base)
-        selected = resolve_group(ctx, group)
-        conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
-        result = build_forecast(
-            conn,
-            (year, m),
-            months,
-            accounts=None if group is None else set(selected),
-            group=group,
-        )
+        result = _forecast(month, base, since, until, group)
         if as_json:
             emit_json(result)
             return
@@ -224,5 +234,33 @@ def forecast(
             ["receitas", "despesas", "saldo"],
             [[result.income, result.expenses, result.net]],
         )
+
+    run(_go)
+
+
+@report_app.command("pdf")
+def pdf(
+    out: Annotated[Path, typer.Option("--out", help="arquivo .pdf a gerar")],
+    month: Annotated[
+        str | None, typer.Option("--month", help="AAAA-MM a prever, default o mês que vem")
+    ] = None,
+    base: Annotated[
+        int, typer.Option("--base", help="quantos meses fechados usar de base")
+    ] = DEFAULT_BASE_MONTHS,
+    since: Annotated[str | None, typer.Option("--from", help="1º mês da base, AAAA-MM")] = None,
+    until: Annotated[str | None, typer.Option("--to", help="último mês da base, AAAA-MM")] = None,
+    group: GroupOpt = None,
+) -> None:
+    """Gera a previsão em PDF, com gráficos, imprimindo pelo navegador da máquina."""
+
+    def _go() -> None:
+        result = _forecast(month, base, since, until, group)
+        target = out if out.suffix.lower() == ".pdf" else out.with_suffix(".pdf")
+        html = target.with_suffix(".html")
+        html.parent.mkdir(parents=True, exist_ok=True)
+        html.write_text(forecast_html(result), encoding="utf-8")
+        html_to_pdf(html, target)
+        typer.echo(f"PDF: {target}")
+        typer.echo(f"HTML: {html}")
 
     run(_go)

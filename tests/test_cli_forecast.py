@@ -70,3 +70,30 @@ def test_from_without_to_is_an_error(env: Path) -> None:
     result = CliRunner().invoke(app, ["report", "forecast", "--from", "2026-10"])
     assert result.exit_code == 1
     assert "use --from e --to juntos" in result.output
+
+
+def test_pdf_writes_html_and_asks_the_browser_to_print(
+    env: Path, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    out = tmp_path / "previsao.pdf"
+    script = tmp_path / "browser.sh"
+    script.write_text(f'#!/bin/sh\necho pdf > "{out}"\n', encoding="utf-8")
+    script.chmod(0o755)
+    monkeypatch.setenv("FINANCE_BROWSER", str(script))
+    output = _run(
+        "report",
+        "pdf",
+        "--month",
+        "2026-12",
+        "--from",
+        "2026-10",
+        "--to",
+        "2026-11",
+        "--out",
+        str(out),
+    )
+    assert str(out) in output
+    assert out.exists()
+    html = (tmp_path / "previsao.html").read_text(encoding="utf-8")
+    assert "Previsão de dezembro de 2026" in html
+    assert "casa/luz" in html

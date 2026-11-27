@@ -10,6 +10,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report budget [--month AAAA-MM] [--json]` | Só categorias com orçamento: gasto, teto, %. |
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
 | `finance report forecast [--month AAAA-MM] [--base N] [--from AAAA-MM --to AAAA-MM] [--json]` | Previsão por categoria: o que cada uma custou em cada mês da base e a média por mês. |
+| `finance report pdf --out arquivo.pdf [--month AAAA-MM] [--base N] [--from AAAA-MM --to AAAA-MM]` | A previsão em PDF, com gráficos. Imprime pelo Chrome/Chromium/Edge da máquina e deixa o `.html` ao lado. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
 | `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, CSV e PDF de conta do Bradesco, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar o mesmo arquivo não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
@@ -158,3 +159,11 @@ Quanto cada categoria costuma custar por mês, pra estimar um mês que ainda nã
 - Competência, igual ao `report month`: compra no cartão conta no mês da compra, e perna de transferência não conta.
 - A linha `(sem categoria)` entra na previsão. Categorizar muda a previsão, não o total.
 - Não há sazonalidade: a previsão é a média da base repetida. Dezembro, IPVA, IPTU e matrícula não aparecem se não estiverem nos meses da base.
+
+## PDF: `report pdf`
+
+Mesma previsão do `report forecast`, em página A4 com gráficos de barra, tabela e as ressalvas impressas no rodapé.
+
+- Quem imprime é o navegador já instalado (Chrome, Chromium ou Edge, nessa ordem), em modo headless. **Nenhuma dependência nova** e nada é baixado: a página é autocontida, com os gráficos em SVG inline e o CSS embutido. `FINANCE_BROWSER` aponta outro executável.
+- O `.html` fica salvo ao lado do `.pdf`: dá pra abrir, conferir e reimprimir sem rodar a CLI.
+- O PDF tem os valores do usuário. Ele é saída descartável — gere em `.cache/` do repo de dados, nunca dentro deste repo.
