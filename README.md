@@ -26,6 +26,7 @@ FINANCE_DATA_DIR=examples/data uv run finance report balance
 | `categorizar` | pendentes sem categoria |
 | `fechar-mes` | "como foi o mês", "fecha setembro" |
 | `saldo` | "quanto tenho", "quanto vem de fatura" |
+| `prever` | "quanto vou gastar no mês que vem", "quanto gasto por mês em cada categoria" |
 
 ## Comandos
 

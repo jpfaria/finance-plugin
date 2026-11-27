@@ -7,9 +7,16 @@ import typer
 
 from finance.cache.connection import open_db
 from finance.cli.context import Context, load_context, resolve_account, resolve_group, run
-from finance.model.dates import parse_month
+from finance.model.dates import add_months, parse_month
+from finance.model.errors import FinanceError
 from finance.render.output import emit_json, emit_table
 from finance.reports.balance import account_balances
+from finance.reports.forecast import (
+    DEFAULT_BASE_MONTHS,
+    base_before,
+    months_between,
+)
+from finance.reports.forecast import forecast as build_forecast
 from finance.reports.invoice import invoice as build_invoice
 from finance.reports.month import MonthSummary, month_summary
 
@@ -33,6 +40,13 @@ def _month(text: str | None) -> tuple[int, int]:
         today = date.today()
         return today.year, today.month
     return parse_month(text)
+
+
+def _next_month(text: str | None) -> tuple[int, int]:
+    if text is not None:
+        return parse_month(text)
+    nxt = add_months(date.today().replace(day=1), 1)
+    return nxt.year, nxt.month
 
 
 def _summary(ctx: Context, month: str | None, group: str | None) -> MonthSummary:
@@ -149,6 +163,66 @@ def invoice(
             "Totais",
             ["compras", "pagamentos", "a pagar"],
             [[inv.purchases, inv.payments, inv.total_due]],
+        )
+
+    run(_go)
+
+
+@report_app.command("forecast")
+def forecast(
+    month: Annotated[
+        str | None, typer.Option("--month", help="AAAA-MM a prever, default o mês que vem")
+    ] = None,
+    base: Annotated[
+        int, typer.Option("--base", help="quantos meses fechados usar de base")
+    ] = DEFAULT_BASE_MONTHS,
+    since: Annotated[str | None, typer.Option("--from", help="1º mês da base, AAAA-MM")] = None,
+    until: Annotated[str | None, typer.Option("--to", help="último mês da base, AAAA-MM")] = None,
+    group: GroupOpt = None,
+    as_json: JsonOpt = False,
+) -> None:
+    """Previsão por categoria: o que cada uma costuma custar por mês."""
+
+    def _go() -> None:
+        ctx = load_context()
+        year, m = _next_month(month)
+        if since is not None or until is not None:
+            if since is None or until is None:
+                raise FinanceError("use --from e --to juntos")
+            months = months_between(parse_month(since), parse_month(until))
+        else:
+            months = base_before(year, m, base)
+        selected = resolve_group(ctx, group)
+        conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
+        result = build_forecast(
+            conn,
+            (year, m),
+            months,
+            accounts=None if group is None else set(selected),
+            group=group,
+        )
+        if as_json:
+            emit_json(result)
+            return
+        window = f"{result.base[0]} a {result.base[-1]}" if len(result.base) > 1 else result.base[0]
+        columns = ["categoria", "previsto/mês", "meses", *result.base]
+        total = len(result.base)
+        for title, lines in (
+            ("Todo mês", [ln for ln in result.lines if ln.every_month]),
+            ("Eventual", [ln for ln in result.lines if not ln.every_month]),
+        ):
+            emit_table(
+                title,
+                columns,
+                [
+                    [ln.category, ln.average, f"{ln.months_present}/{total}", *ln.per_month]
+                    for ln in lines
+                ],
+            )
+        emit_table(
+            f"Previsão {result.target}{_scope(result.group)} — base {window}",
+            ["receitas", "despesas", "saldo"],
+            [[result.income, result.expenses, result.net]],
         )
 
     run(_go)

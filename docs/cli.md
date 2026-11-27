@@ -9,6 +9,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report month [--month AAAA-MM] [--json]` | Receitas, despesas por categoria vs orçamento, saldo do mês. |
 | `finance report budget [--month AAAA-MM] [--json]` | Só categorias com orçamento: gasto, teto, %. |
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
+| `finance report forecast [--month AAAA-MM] [--base N] [--from AAAA-MM --to AAAA-MM] [--json]` | Previsão por categoria: o que cada uma custou em cada mês da base e a média por mês. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
 | `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, CSV e PDF de conta do Bradesco, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar o mesmo arquivo não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
@@ -84,7 +85,7 @@ Regra que não casa mais **não apaga** a categoria que ela pôs antes: `--force
 
 Cada conta pode declarar `group: <nome livre>` em `accounts.yaml` — "pessoal", "pj", "familia", quantos você quiser. A lista de grupos sai das próprias contas; não existe segundo arquivo pra desincronizar.
 
-`report month`, `report budget`, `report balance` e `recategorize` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
+`report month`, `report budget`, `report balance`, `report forecast` e `recategorize` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
 
 ## Orçamento
 
@@ -147,3 +148,13 @@ Outro banco ou formato: `finance import` falha com "formato não reconhecido". A
 2. Edite `data/accounts.yaml` (contas e cartões, dia de fechamento/vencimento) e `data/categories.yaml`.
 3. `.claude/settings.json` com `{"enabledPlugins": {"finance-plugin@finance": true}}`.
 4. `.gitignore` com `imports/` e `.cache/`.
+
+## Previsão: `report forecast`
+
+Quanto cada categoria costuma custar por mês, pra estimar um mês que ainda não aconteceu.
+
+- A base são meses **fechados**: por padrão os `--base N` meses imediatamente antes do mês previsto (N = 3). `--from AAAA-MM --to AAAA-MM` escolhe a janela na mão — use quando um mês da base está incompleto (conta importada no meio do mês, por exemplo), porque mês incompleto puxa a média pra baixo em silêncio.
+- A média divide por **todos** os meses da base, mesmo onde a categoria não apareceu: um gasto único em três meses entra como um terço. A coluna `meses` (2/3) e a separação em duas tabelas — **Todo mês** e **Eventual** — mostram o que é recorrente e o que foi pontual.
+- Competência, igual ao `report month`: compra no cartão conta no mês da compra, e perna de transferência não conta.
+- A linha `(sem categoria)` entra na previsão. Categorizar muda a previsão, não o total.
+- Não há sazonalidade: a previsão é a média da base repetida. Dezembro, IPVA, IPTU e matrícula não aparecem se não estiverem nos meses da base.
