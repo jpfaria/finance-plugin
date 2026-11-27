@@ -18,6 +18,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance transfer [--days 5] [--json]` | Lista pares que parecem transferência (valores opostos, contas diferentes) e ainda não estão marcados. |
 | `finance transfer set <id> <id>... [--force]` | Marca as pernas como uma transferência: o `report month` passa a ignorar as duas. |
 | `finance transfer clear <id>...` | Tira a marca. |
+| `finance split <id> --part valor:categoria --part valor:categoria` | Rateia uma cobrança em partes com categorias diferentes. |
 
 `--account` aceita o `id` exato ou parte do nome (`"nubank cart"`); ambiguidade é erro.
 
@@ -40,6 +41,22 @@ finance transfer clear <id> <id>            # desfaz
 A soma das pernas tem que dar zero: é o que prova que o dinheiro só mudou de lugar. Perna sozinha — a outra está num extrato que não foi importado — só com `--force`, porque aí a decisão é sua e não dá pra conferir.
 
 **Cuidado com o cartão que não é conta no `accounts.yaml`.** Se as compras daquele cartão não estão no ledger, o pagamento da fatura é o *único* registro daquele gasto: marcar como transferência apaga a despesa do relatório. Só marque quando as duas pontas estiverem no ledger.
+
+## Uma cobrança, duas coisas: `split`
+
+Uma linha de 868 na fatura que é a soma de duas assinaturas não tem como ter duas categorias. `finance split` troca o lançamento por partes que somam exatamente o mesmo valor:
+
+```bash
+finance split <id> --part 576:barco/starlink --part 292:casa/internet
+```
+
+- Os valores são positivos e precisam somar o valor original (o sinal é herdado: saída continua saída).
+- A primeira parte **mantém o id** do lançamento original, pra nada que aponte pra ele ficar órfão.
+- Todas as partes guardam o `import_hash` do original, que é a chave de deduplicação: reimportar o extrato não grava a cobrança de novo.
+- A categoria de cada parte entra como `manual`, então `recategorize --force` não desfaz o rateio.
+- A descrição ganha `- Rateio N/M`.
+
+Perna de transferência não se rateia (não entra em relatório): use `finance transfer clear` antes.
 
 ## Regra nova no histórico: `recategorize`
 

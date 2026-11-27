@@ -12,6 +12,7 @@ from finance.cli.rebuild import rebuild
 from finance.cli.recategorize import recategorize
 from finance.cli.reconcile import reconcile
 from finance.cli.report import report_app
+from finance.cli.split import split_entry
 from finance.cli.transfer import transfer_app
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -42,4 +43,5 @@ app.add_typer(categorize_app, name="categorize")
 app.command("recategorize")(recategorize)
 app.command("rebuild")(rebuild)
 app.add_typer(report_app, name="report")
+app.command("split")(split_entry)
 app.add_typer(transfer_app, name="transfer")
