@@ -38,6 +38,8 @@ class Forecast:
     expenses: Decimal
     net: Decimal
     lines: list[ForecastLine]
+    income_by_month: dict[str, Decimal]
+    expenses_by_month: dict[str, Decimal]
 
 
 def month_key(year: int, month: int) -> str:
@@ -105,6 +107,11 @@ def forecast(
         expenses=expenses,
         net=income - expenses,
         lines=lines,
+        income_by_month=income_by_month,
+        expenses_by_month={
+            month: sum((line.per_month[index] for line in lines), ZERO)
+            for index, month in enumerate(base)
+        },
     )
 
 

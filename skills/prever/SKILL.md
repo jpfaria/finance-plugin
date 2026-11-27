@@ -14,7 +14,10 @@ Rode a partir do diretório do projeto de dados do usuário:
 ```bash
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance report forecast --month AAAA-MM
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance report forecast --month AAAA-MM --from AAAA-MM --to AAAA-MM
+uv run --project "${CLAUDE_PLUGIN_ROOT}" finance report pdf --month AAAA-MM --out .cache/relatorios/previsao-AAAA-MM.pdf
 ```
+
+`report pdf` gera a mesma previsão em PDF com gráficos. Use quando ele pedir um relatório, um PDF ou algo pra guardar/mandar. Gere sempre em `.cache/` do repo de dados (é saída descartável e tem os valores dele) e **mande o arquivo**, não o caminho só.
 
 ## Como conduzir
 
