@@ -14,6 +14,10 @@ accounts:
     name: Bradesco conta
     bank: bradesco
     type: checking
+    # Saldo do extrato na véspera do primeiro lançamento importado. Sem isso os
+    # relatórios só somam movimento e não sabem dizer o saldo do banco.
+    opening_balance: 1234.56
+    opening_date: 2026-09-28
   - id: bra-card
     name: Bradesco cartão
     bank: bradesco

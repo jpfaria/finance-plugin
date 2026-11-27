@@ -1,5 +1,7 @@
 """Load accounts.yaml into Account objects."""
 
+from datetime import date
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +9,7 @@ import yaml
 
 from finance.model.account import Account, AccountType
 from finance.model.errors import FinanceError
+from finance.model.money import CENTS
 
 
 def load_accounts(path: Path) -> dict[str, Account]:
@@ -35,11 +38,17 @@ def _parse(item: Any, path: Path) -> Account:
             closing_day=_optional_day(item.get("closing_day")),
             due_day=_optional_day(item.get("due_day")),
             group=str(item.get("group", "")).strip(),
+            opening_balance=_optional_amount(item.get("opening_balance")),
+            opening_date=_optional_date(item.get("opening_date")),
         )
     except (KeyError, ValueError) as exc:
         raise FinanceError(f"{path}: conta inválida: {item!r} ({exc})") from exc
     if account.is_credit and (account.closing_day is None or account.due_day is None):
         raise FinanceError(f"{path}: cartão {account.id!r} precisa de closing_day e due_day")
+    if (account.opening_balance is None) != (account.opening_date is None):
+        raise FinanceError(
+            f"{path}: conta {account.id!r}: opening_balance e opening_date andam juntos"
+        )
     return account
 
 
@@ -47,6 +56,23 @@ def accounts_in_group(accounts: dict[str, Account], group: str | None) -> dict[s
     if group is None:
         return accounts
     return {i: a for i, a in accounts.items() if a.group == group}
+
+
+def _optional_amount(value: Any) -> Decimal | None:
+    if value is None:
+        return None
+    try:
+        return Decimal(str(value)).quantize(CENTS)
+    except InvalidOperation as exc:
+        raise ValueError(f"saldo inválido: {value!r}") from exc
+
+
+def _optional_date(value: Any) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value))
 
 
 def _optional_day(value: Any) -> int | None:
