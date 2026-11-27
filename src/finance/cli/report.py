@@ -14,6 +14,7 @@ from finance.render.output import emit_json, emit_table
 from finance.render.pdf import html_to_pdf
 from finance.render.report_html import forecast_html
 from finance.reports.balance import account_balances
+from finance.reports.cash import cash_report
 from finance.reports.forecast import (
     DEFAULT_BASE_MONTHS,
     Forecast,
@@ -131,8 +132,18 @@ def balance(group: GroupOpt = None, as_json: JsonOpt = False) -> None:
             return
         emit_table(
             f"Saldos{_scope(group)}",
-            ["conta", "tipo", "saldo", "fatura aberta", "mês"],
-            [[r.name, r.type, r.balance, r.open_invoice, r.open_invoice_month] for r in rows],
+            ["conta", "tipo", "saldo", "fonte", "fatura aberta", "mês"],
+            [
+                [
+                    r.name,
+                    r.type,
+                    r.balance,
+                    "banco" if r.real else "só movimento",
+                    r.open_invoice,
+                    r.open_invoice_month,
+                ]
+                for r in rows
+            ],
         )
 
     run(_go)
@@ -262,5 +273,41 @@ def pdf(
         html_to_pdf(html, target)
         typer.echo(f"PDF: {target}")
         typer.echo(f"HTML: {html}")
+
+    run(_go)
+
+
+@report_app.command("cash")
+def cash(month: MonthOpt = None, group: GroupOpt = None, as_json: JsonOpt = False) -> None:
+    """Caixa do mês: o que entrou e saiu das contas de verdade, e o saldo no fim."""
+
+    def _go() -> None:
+        ctx = load_context()
+        year, m = _month(month)
+        selected = resolve_group(ctx, group)
+        conn = open_db(ctx.data_root, ctx.cache_root, ctx.accounts, ctx.budget)
+        result = cash_report(conn, selected, year, m, group)
+        if as_json:
+            emit_json(result)
+            return
+        emit_table(
+            f"Caixa {year:04d}-{m:02d}{_scope(group)}",
+            ["conta", "saldo inicial", "entrou", "saiu", "movimento", "saldo final"],
+            [
+                [ln.name, ln.opening, ln.income, ln.outflow, ln.movement, ln.closing]
+                for ln in result.lines
+            ],
+        )
+        emit_table(
+            "Total",
+            ["saldo inicial", "entrou", "saiu", "movimento", "saldo final"],
+            [[result.opening, result.income, result.outflow, result.movement, result.closing]],
+        )
+        if result.accounts_without_opening:
+            faltam = ", ".join(result.accounts_without_opening)
+            typer.echo(
+                f"sem saldo inicial em accounts.yaml: {faltam} "
+                "(opening_balance + opening_date); sem isso o saldo fica em branco"
+            )
 
     run(_go)

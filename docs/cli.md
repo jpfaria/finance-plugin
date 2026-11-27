@@ -11,6 +11,7 @@ Todo comando lê os dados de `FINANCE_DATA_DIR` (default `./data`) e o cache de 
 | `finance report balance [--json]` | Saldo por conta e fatura aberta por cartão. |
 | `finance report forecast [--month AAAA-MM] [--base N] [--from AAAA-MM --to AAAA-MM] [--json]` | Previsão por categoria: o que cada uma custou em cada mês da base e a média por mês. |
 | `finance report pdf --out arquivo.pdf [--month AAAA-MM] [--base N] [--from AAAA-MM --to AAAA-MM]` | A previsão em PDF, com gráficos. Imprime pelo Chrome/Chromium/Edge da máquina e deixa o `.html` ao lado. |
+| `finance report cash [--month AAAA-MM] [--json]` | Caixa do mês por conta: saldo inicial, o que entrou, o que saiu e o saldo final. |
 | `finance report invoice --account X [--month AAAA-MM] [--json]` | Detalhe da fatura do cartão (período, vencimento, linhas, totais). |
 | `finance import <arquivo> --account X` | Importa um extrato (OFX, CSV de conta ou de cartão do Nubank, CSV e PDF de conta do Bradesco, PDF da fatura do cartão Bradesco). Dedupe por hash: reimportar o mesmo arquivo não duplica. Aplica `rules.yaml`. |
 | `finance reconcile [--window 3] [--stale-days 45] [--json]` | Casa lançamentos manuais com os importados, relata importados sem par e manuais antigos. |
@@ -86,7 +87,7 @@ Regra que não casa mais **não apaga** a categoria que ela pôs antes: `--force
 
 Cada conta pode declarar `group: <nome livre>` em `accounts.yaml` — "pessoal", "pj", "familia", quantos você quiser. A lista de grupos sai das próprias contas; não existe segundo arquivo pra desincronizar.
 
-`report month`, `report budget`, `report balance`, `report forecast` e `recategorize` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
+`report month`, `report budget`, `report balance`, `report cash`, `report forecast` e `recategorize` aceitam `--group X`: contam só as contas daquele grupo. Sem a flag, agregam tudo. Grupo que nenhuma conta declara é erro.
 
 ## Orçamento
 
@@ -167,3 +168,21 @@ Mesma previsão do `report forecast`, em página A4 com gráficos de barra, tabe
 - Quem imprime é o navegador já instalado (Chrome, Chromium ou Edge, nessa ordem), em modo headless. **Nenhuma dependência nova** e nada é baixado: a página é autocontida, com os gráficos em SVG inline e o CSS embutido. `FINANCE_BROWSER` aponta outro executável.
 - O `.html` fica salvo ao lado do `.pdf`: dá pra abrir, conferir e reimprimir sem rodar a CLI.
 - O PDF tem os valores do usuário. Ele é saída descartável — gere em `.cache/` do repo de dados, nunca dentro deste repo.
+
+## Saldo de verdade: `opening_balance` e `report cash`
+
+O ledger só tem o que foi importado, então somar lançamento dá movimento, não saldo. Pra o saldo bater com o banco, a conta declara em `accounts.yaml`:
+
+```yaml
+  - id: bra
+    name: Bradesco conta
+    bank: bradesco
+    type: checking
+    opening_balance: -3675.37
+    opening_date: 2026-09-28
+```
+
+- `opening_balance` é o saldo **na véspera** do primeiro lançamento importado (`opening_date`), com sinal: negativo é conta no vermelho. Os dois andam juntos; um sem o outro é erro.
+- Onde achar: no extrato. Atenção à coluna de saldo do Bradesco — ela imprime o **módulo**, sem sinal. Confira a aritmética linha a linha antes de copiar um número de lá: se um débito faz o saldo impresso **subir**, a conta está negativa.
+- `report balance` passa a mostrar o saldo do banco e a coluna `fonte` diz `banco` ou `só movimento`.
+- `report cash` é a visão de caixa: entra tudo que mexeu na conta, **inclusive perna de transferência** (pagar a fatura é dinheiro saindo), e cartão não aparece. É o complemento do `report month`, que é competência e conta a compra no mês da compra.
