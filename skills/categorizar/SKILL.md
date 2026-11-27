@@ -15,6 +15,7 @@ Rode a partir do diretório do projeto de dados do usuário:
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance categorize [--month AAAA-MM] [--json]
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance categorize set <id> <grupo/item> [--rule "<regex>"]
 uv run --project "${CLAUDE_PLUGIN_ROOT}" finance recategorize [--month AAAA-MM] [--group X] [--dry-run] [--force]
+uv run --project "${CLAUDE_PLUGIN_ROOT}" finance split <id> --part <valor>:<grupo/item> --part <valor>:<grupo/item>
 ```
 
 ## Como conduzir
@@ -24,6 +25,10 @@ uv run --project "${CLAUDE_PLUGIN_ROOT}" finance recategorize [--month AAAA-MM] 
 3. Aplique com `categorize set`.
 4. **`--rule` só quando o padrão vai se repetir** (nome de estabelecimento que aparece todo mês). A regex casa a descrição, sem diferenciar maiúscula. Compra única não vira regra — `rules.yaml` cheio de regra morta categoriza errado depois.
 5. **Gravou uma regra? Ofereça o `recategorize`.** Logo depois de um `categorize set --rule`, a regra nova pode pegar lançamento antigo que ainda está sem categoria. Rode `finance recategorize --dry-run`, mostre o que mudaria e espere o ok antes de rodar sem `--dry-run`. Não precisa reimportar nada, nem apagar `data/ledger/`.
+
+## Uma cobrança que paga duas coisas
+
+Quando o usuário disser que uma cobrança só é a soma de duas coisas de categorias diferentes (uma assinatura que cobra dois planos juntos, por exemplo), **pergunte os dois valores** e rateie com `finance split`. As partes precisam somar o valor original. Nunca invente a divisão, e nunca escolha uma categoria só "porque é a maior parte" sem dizer isso ao usuário.
 
 ## Recategorizar
 
@@ -38,3 +43,4 @@ uv run --project "${CLAUDE_PLUGIN_ROOT}" finance recategorize [--month AAAA-MM] 
 - Aplicar categoria sem o usuário confirmar.
 - Usar um caminho que não está em `categories.yaml`. Falta categoria? Proponha adicionar ao arquivo e espere o ok.
 - Editar `rules.yaml` ou o CSV na mão — use `categorize set --rule`.
+- Ratear chutando os valores das partes.
